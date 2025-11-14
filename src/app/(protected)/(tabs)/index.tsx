@@ -1,90 +1,66 @@
-// src/app/(protected)/(tabs)/index.tsx
-import React from "react";
-import {
-	View,
-	Text,
-	FlatList,
-	StyleSheet,
-	TouchableOpacity,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList } from "react-native";
 import { useRouter } from "expo-router";
-import { DugnadData } from "../../../utils/firebaseTypes";
 
-const DUMMY_DUGNADS: DugnadData[] = [
-	{
-		id: "1",
-		title: "Rydding av skolegård",
-		description: "Vi rydder søppel og løv rundt skolen.",
-		location: "Trondheim vgs",
-		date: "12. november 2025, 17:00",
-		maxVolunteers: 10,
-		currentVolunteers: 3,
-	},
-	{
-		id: "2",
-		title: "Dugnad i borettslaget",
-		description: "Vaske trapper og rydde bodområder.",
-		location: "Lerkendal borettslag",
-		date: "15. november 2025, 11:00",
-		maxVolunteers: 8,
-		currentVolunteers: 5,
-	},
-];
+import DugnadCard from "../../../components/DugnadCard";
+import { DugnadData } from "../../../utils/firebaseTypes";
+import { getDugnads } from "../../../api/dugnadApi";
 
 export default function DugnaderHomeScreen() {
 	const router = useRouter();
 
+	const [dugnader, setDugnader] = useState<DugnadData[]>([]);
+	const [loading, setLoading] = useState(true);
+
+	// 🔥 Hent dugnader fra Firestore
+	useEffect(() => {
+		async function load() {
+			try {
+				const data = (await getDugnads()) as DugnadData[];
+				setDugnader(data);
+			} catch (error) {
+				console.log("Kunne ikke hente dugnader:", error);
+			} finally {
+				setLoading(false);
+			}
+		}
+
+		load();
+	}, []);
+
+	// ⏳ Laster
+	if (loading) {
+		return (
+			<View className="flex-1 bg-[#20202A] justify-center items-center">
+				<Text className="text-white">Laster dugnader...</Text>
+			</View>
+		);
+	}
+
+	// 🎴 Render hver dugnad med komponent
+	const renderItem = ({ item }: { item: DugnadData }) => (
+		<DugnadCard
+			dugnad={item}
+			onPress={() => router.push(`/(protected)/dugnadDetails/${item.id}`)}
+		/>
+	);
+
 	return (
-		<View style={styles.container}>
-			<Text style={styles.title}>Kommende dugnader</Text>
+		<View className="flex-1 bg-[#20202A] px-4 pt-10">
+			<Text className="text-white text-3xl font-bold mb-2">
+				Kommende dugnader
+			</Text>
+
+			<Text className="text-gray-300 mb-6 text-sm">
+				Finn en dugnad du vil bidra på i nærheten.
+			</Text>
+
 			<FlatList
-				data={DUMMY_DUGNADS}
+				data={dugnader}
 				keyExtractor={(item) => item.id}
+				renderItem={renderItem}
 				contentContainerStyle={{ paddingBottom: 24 }}
-				renderItem={({ item }) => (
-					<TouchableOpacity
-						style={styles.card}
-						onPress={() => router.push(`/(protected)/dugnadDetails/${item.id}`)}
-					>
-						<Text style={styles.cardTitle}>{item.title}</Text>
-						<Text style={styles.cardText}>{item.location}</Text>
-						<Text style={styles.cardSub}>{item.date}</Text>
-					</TouchableOpacity>
-				)}
 			/>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#20202A",
-		paddingHorizontal: 16,
-		paddingTop: 32,
-	},
-	title: {
-		color: "#fff",
-		fontSize: 24,
-		fontWeight: "bold",
-		marginBottom: 16,
-	},
-	card: {
-		backgroundColor: "#fff",
-		borderRadius: 12,
-		padding: 12,
-		marginBottom: 12,
-	},
-	cardTitle: {
-		fontSize: 16,
-		fontWeight: "bold",
-	},
-	cardText: {
-		fontSize: 14,
-	},
-	cardSub: {
-		fontSize: 12,
-		color: "#555",
-		marginTop: 4,
-	},
-});

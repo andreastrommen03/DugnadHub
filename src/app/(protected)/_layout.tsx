@@ -1,4 +1,3 @@
-// src/app/(protected)/_layout.tsx
 import React from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { Stack, Redirect } from "expo-router";

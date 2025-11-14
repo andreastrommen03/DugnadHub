@@ -1,74 +1,124 @@
 // src/app/authentication.tsx
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  Alert,
+	View,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	StyleSheet,
+	Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthSession } from "../providers/authctx";
 
 export default function AuthenticationScreen() {
-  const { signIn, signUp } = useAuthSession();
-  const router = useRouter();
+	const { signIn, signUp } = useAuthSession();
+	const router = useRouter();
 
-  const [mode, setMode] = useState<"login" | "register">("register");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+	const [mode, setMode] = useState<"login" | "register">("register");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 
-  const submit = async () => {
-    if (!email || !password) return;
+	const submit = async () => {
+		if (!email || !password) {
+			Alert.alert("Feil", "Fyll inn både e-post og passord.");
+			return;
+		}
 
-    try {
-      if (mode === "login") await signIn(email, password);
-      else await signUp(email, password);
+		try {
+			if (mode === "login") {
+				await signIn(email.trim(), password);
+			} else {
+				await signUp(email.trim(), password);
+			}
+			router.replace("/(protected)/(tabs)");
+		} catch (e: any) {
+			Alert.alert("Feil", e?.message ?? "Kunne ikke logge inn.");
+		}
+	};
 
-      router.replace("/(protected)/(tabs)");
-    } catch (e) {
-      Alert.alert("Feil", "Kunne ikke logge inn.");
-    }
-  };
+	return (
+		<View style={styles.container}>
+			<Text style={styles.title}>
+				{mode === "login" ? "Logg inn" : "Registrer deg"}
+			</Text>
 
-  return (
-    <View className="flex-1 bg-[#20202A] justify-center px-6">
-      <Text className="text-white text-2xl font-bold text-center mb-8">
-        {mode === "login" ? "Logg inn" : "Registrer deg"}
-      </Text>
+			<Text style={styles.label}>E-post</Text>
+			<TextInput
+				style={styles.input}
+				value={email}
+				onChangeText={setEmail}
+				autoCapitalize="none"
+			/>
 
-      <Text className="text-white mb-1">E-post</Text>
-      <TextInput
-        className="bg-white px-4 py-2 rounded-md mb-4"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-      />
+			<Text style={styles.label}>Passord</Text>
+			<TextInput
+				style={styles.input}
+				secureTextEntry
+				value={password}
+				onChangeText={setPassword}
+			/>
 
-      <Text className="text-white mb-1">Passord</Text>
-      <TextInput
-        className="bg-white px-4 py-2 rounded-md mb-6"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+			<TouchableOpacity style={styles.button} onPress={submit}>
+				<Text style={styles.buttonText}>
+					{mode === "login" ? "Logg inn" : "Registrer meg"}
+				</Text>
+			</TouchableOpacity>
 
-      <Pressable
-        className="bg-[#FF9B52] py-3 rounded-full mb-4"
-        onPress={submit}
-      >
-        <Text className="text-white text-center font-semibold">
-          {mode === "login" ? "Logg inn" : "Registrer meg"}
-        </Text>
-      </Pressable>
-
-      <Pressable onPress={() => setMode(mode === "login" ? "register" : "login")}>
-        <Text className="text-[#F7853E] text-center">
-          {mode === "login"
-            ? "Har du ikke konto? Registrer deg"
-            : "Har du allerede konto? Logg inn"}
-        </Text>
-      </Pressable>
-    </View>
-  );
+			<TouchableOpacity
+				onPress={() =>
+					setMode((prev) => (prev === "login" ? "register" : "login"))
+				}
+			>
+				<Text style={styles.switchText}>
+					{mode === "login"
+						? "Har du ikke konto? Registrer deg"
+						: "Har du allerede konto? Logg inn"}
+				</Text>
+			</TouchableOpacity>
+		</View>
+	);
 }
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		backgroundColor: "#20202A",
+		justifyContent: "center",
+		paddingHorizontal: 24,
+	},
+	title: {
+		fontSize: 24,
+		fontWeight: "bold",
+		color: "#fff",
+		textAlign: "center",
+		marginBottom: 24,
+	},
+	label: {
+		color: "#fff",
+		marginBottom: 4,
+	},
+	input: {
+		backgroundColor: "#fff",
+		borderRadius: 8,
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		marginBottom: 16,
+	},
+	button: {
+		backgroundColor: "#FF9B52",
+		borderRadius: 24,
+		paddingVertical: 12,
+		alignItems: "center",
+		marginBottom: 12,
+	},
+	buttonText: {
+		color: "#fff",
+		fontWeight: "bold",
+		fontSize: 16,
+	},
+	switchText: {
+		color: "#F7853E",
+		textAlign: "center",
+	},
+});

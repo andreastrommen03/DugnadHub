@@ -1,22 +1,25 @@
 // src/app/(protected)/_layout.tsx
 import React from "react";
+import { View, Text, ActivityIndicator } from "react-native";
 import { Stack, Redirect } from "expo-router";
 import { useAuthSession } from "../../providers/authctx";
 
 export default function ProtectedLayout() {
 	const { user, isLoading } = useAuthSession();
 
-	// Mens vi ikke vet om brukeren er logget inn
 	if (isLoading) {
-		return null; // evt. en Loader-komponent
+		return (
+			<View className="flex-1 items-center justify-center bg-[#20202A]">
+				<ActivityIndicator />
+				<Text className="text-white mt-2">Laster...</Text>
+			</View>
+		);
 	}
 
-	// Ikke innlogget → send til authentication
 	if (!user) {
 		return <Redirect href="/authentication" />;
 	}
 
-	// Innlogget → vis stacken
 	return (
 		<Stack>
 			<Stack.Screen name="(tabs)" options={{ headerShown: false }} />

@@ -1,4 +1,4 @@
-// providers/authctx.tsx
+// src/providers/authctx.tsx
 import React, {
 	createContext,
 	useContext,
@@ -6,31 +6,28 @@ import React, {
 	useState,
 	ReactNode,
 } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "../../firebaseConfig"; // 🚨 legg merke til ../../
 import { signInWithEmail, signUpWithEmail, signOutUser } from "../api/authApi";
 
 type AuthContextType = {
-	user: any;
+	user: User | null;
 	isLoading: boolean;
 	signIn: (email: string, password: string) => Promise<void>;
 	signUp: (email: string, password: string) => Promise<void>;
 	signOut: () => Promise<void>;
 };
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-	undefined
-);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 type Props = {
 	children: ReactNode;
 };
 
 export const AuthProvider = ({ children }: Props) => {
-	const [user, setUser] = useState<any>(null);
+	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 
-	// Lytt til auth-status (som i Yuan sin kode med onAuthStateChanged)
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
 			setUser(firebaseUser ?? null);
@@ -44,7 +41,6 @@ export const AuthProvider = ({ children }: Props) => {
 		setIsLoading(true);
 		try {
 			await signInWithEmail(email, password);
-			// onAuthStateChanged vil oppdatere user
 		} finally {
 			setIsLoading(false);
 		}
@@ -79,7 +75,6 @@ export const AuthProvider = ({ children }: Props) => {
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Lite hjelpe-hook (Yuan pleier å gjøre dette)
 export const useAuthSession = () => {
 	const ctx = useContext(AuthContext);
 	if (!ctx) {

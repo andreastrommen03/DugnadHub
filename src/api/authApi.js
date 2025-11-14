@@ -1,32 +1,21 @@
-// api/authApi.js
+// src/api/authApi.js
 import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
 	signOut,
 } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
+import { auth } from "../../firebaseConfig"; // 🚨 legg merke til ../../
 
-// Registrer ny bruker med e-post og passord
 export const signUpWithEmail = async (email, password) => {
-	const userCredential = await createUserWithEmailAndPassword(
-		auth,
-		email,
-		password
-	);
-	return userCredential.user;
+	const cred = await createUserWithEmailAndPassword(auth, email, password);
+	return cred.user;
 };
 
-// Logg inn eksisterende bruker
 export const signInWithEmail = async (email, password) => {
-	const userCredential = await signInWithEmailAndPassword(
-		auth,
-		email,
-		password
-	);
-	return userCredential.user;
+	const cred = await signInWithEmailAndPassword(auth, email, password);
+	return cred.user;
 };
 
-// Logg ut
 export const signOutUser = async () => {
 	await signOut(auth);
 };

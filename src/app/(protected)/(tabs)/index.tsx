@@ -5,7 +5,6 @@ import { useRouter } from "expo-router";
 import DugnadCard from "../../../components/DugnadCard";
 import { DugnadData } from "../../../utils/firebaseTypes";
 
-// 🔸 Dummy-data – senere byttes dette ut med Firestore
 const DUMMY_DUGNADS: DugnadData[] = [
 	{
 		id: "1",
@@ -15,7 +14,6 @@ const DUMMY_DUGNADS: DugnadData[] = [
 		date: "12. november 2025, 17:00",
 		maxVolunteers: 10,
 		currentVolunteers: 3,
-		imageUrl: undefined,
 	},
 	{
 		id: "2",
@@ -25,7 +23,6 @@ const DUMMY_DUGNADS: DugnadData[] = [
 		date: "15. november 2025, 11:00",
 		maxVolunteers: 8,
 		currentVolunteers: 5,
-		imageUrl: undefined,
 	},
 ];
 
@@ -40,8 +37,8 @@ export default function DugnaderHomeScreen() {
 	);
 
 	return (
-		<View className="flex-1 bg-[#20202A] px-4 pt-6">
-			<Text className="text-2xl font-bold text-white mb-4">
+		<View className="flex-1 bg-[#20202A] px-4 pt-10">
+			<Text className="text-3xl font-bold text-white mb-6">
 				Kommende dugnader
 			</Text>
 
@@ -49,7 +46,7 @@ export default function DugnaderHomeScreen() {
 				data={DUMMY_DUGNADS}
 				keyExtractor={(item) => item.id}
 				renderItem={renderItem}
-				contentContainerStyle={{ paddingBottom: 24 }}
+				contentContainerStyle={{ paddingBottom: 40 }}
 			/>
 		</View>
 	);

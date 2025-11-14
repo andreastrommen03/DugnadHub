@@ -4,10 +4,13 @@ import { db } from "../../firebaseConfig";
 
 export async function getDugnads() {
 	try {
+		console.log("🔎 Henter dugnader fra Firestore...");
 		const snapshot = await getDocs(collection(db, "dugnader"));
+		console.log("📦 Antall dokumenter i snapshot:", snapshot.size);
 
 		const dugnader = snapshot.docs.map((doc) => {
 			const data = doc.data();
+			console.log("📄 Dokument:", doc.id, data);
 
 			return {
 				id: doc.id,
@@ -21,9 +24,10 @@ export async function getDugnads() {
 			};
 		});
 
+		console.log("✅ Ferdig mappet dugnader:", dugnader);
 		return dugnader;
 	} catch (error) {
-		console.error("Feil ved henting av dugnader:", error);
+		console.error("❌ Feil ved henting av dugnader:", error);
 		throw error;
 	}
 }

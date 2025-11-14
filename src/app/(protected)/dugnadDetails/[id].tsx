@@ -1,6 +1,6 @@
 // src/app/(protected)/dugnadDetails/[id].tsx
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { DugnadData } from "../../../utils/firebaseTypes";
 
@@ -31,41 +31,34 @@ export default function DugnadDetailsScreen() {
 
 	if (!dugnad) {
 		return (
-			<View style={styles.container}>
-				<Text style={styles.title}>Fant ikke dugnaden</Text>
-				<Text style={styles.text}>ID: {id}</Text>
+			<View className="flex-1 bg-[#20202A] items-center justify-center px-4">
+				<Text className="text-white text-lg font-semibold mb-2">
+					Fant ikke dugnaden
+				</Text>
+				<Text className="text-gray-300 text-sm">ID: {id}</Text>
 			</View>
 		);
 	}
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.title}>{dugnad.title}</Text>
-			<Text style={styles.text}>{dugnad.description}</Text>
-			<Text style={styles.text}>Sted: {dugnad.location}</Text>
-			<Text style={styles.text}>Tidspunkt: {dugnad.date}</Text>
-			<Text style={styles.text}>
-				Påmeldte: {dugnad.currentVolunteers}/{dugnad.maxVolunteers}
+		<View className="flex-1 bg-[#20202A] px-4 pt-10">
+			<Text className="text-white text-3xl font-bold mb-3">{dugnad.title}</Text>
+
+			<Text className="text-gray-200 text-base mb-4">{dugnad.description}</Text>
+
+			<Text className="text-gray-300 text-sm mb-1">
+				Sted: <Text className="font-medium">{dugnad.location}</Text>
+			</Text>
+			<Text className="text-gray-300 text-sm mb-3">
+				Tidspunkt: <Text className="font-medium">{dugnad.date}</Text>
+			</Text>
+
+			<Text className="text-gray-200 text-sm">
+				Påmeldte:{" "}
+				<Text className="font-semibold">
+					{dugnad.currentVolunteers}/{dugnad.maxVolunteers}
+				</Text>
 			</Text>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#20202A",
-		padding: 16,
-	},
-	title: {
-		color: "#fff",
-		fontSize: 24,
-		fontWeight: "bold",
-		marginBottom: 12,
-	},
-	text: {
-		color: "#fff",
-		fontSize: 14,
-		marginBottom: 4,
-	},
-});

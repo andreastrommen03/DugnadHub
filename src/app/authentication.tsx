@@ -1,13 +1,6 @@
 // src/app/authentication.tsx
 import React, { useState } from "react";
-import {
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	StyleSheet,
-	Alert,
-} from "react-native";
+import { View, Text, TextInput, Pressable, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthSession } from "../providers/authctx";
 
@@ -38,87 +31,52 @@ export default function AuthenticationScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.title}>
+		<View className="flex-1 bg-[#20202A] justify-center px-6">
+			<Text className="text-white text-3xl font-bold text-center mb-8">
 				{mode === "login" ? "Logg inn" : "Registrer deg"}
 			</Text>
 
-			<Text style={styles.label}>E-post</Text>
+			<Text className="text-white mb-1">E-post</Text>
 			<TextInput
-				style={styles.input}
+				className="bg-white rounded-xl px-4 py-3 mb-4"
 				value={email}
 				onChangeText={setEmail}
 				autoCapitalize="none"
+				keyboardType="email-address"
+				placeholder="din@epost.no"
+				placeholderTextColor="#9ca3af"
 			/>
 
-			<Text style={styles.label}>Passord</Text>
+			<Text className="text-white mb-1">Passord</Text>
 			<TextInput
-				style={styles.input}
+				className="bg-white rounded-xl px-4 py-3 mb-6"
 				secureTextEntry
 				value={password}
 				onChangeText={setPassword}
+				placeholder="Minst 6 tegn"
+				placeholderTextColor="#9ca3af"
 			/>
 
-			<TouchableOpacity style={styles.button} onPress={submit}>
-				<Text style={styles.buttonText}>
+			<Pressable
+				className="bg-[#FF9B52] rounded-full py-3 mb-3 items-center"
+				onPress={submit}
+			>
+				<Text className="text-white font-semibold text-base">
 					{mode === "login" ? "Logg inn" : "Registrer meg"}
 				</Text>
-			</TouchableOpacity>
+			</Pressable>
 
-			<TouchableOpacity
+			<Pressable
 				onPress={() =>
 					setMode((prev) => (prev === "login" ? "register" : "login"))
 				}
 			>
-				<Text style={styles.switchText}>
+				<Text className="text-center text-[#F7853E] mt-2">
 					{mode === "login"
 						? "Har du ikke konto? Registrer deg"
 						: "Har du allerede konto? Logg inn"}
 				</Text>
-			</TouchableOpacity>
+			</Pressable>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#20202A",
-		justifyContent: "center",
-		paddingHorizontal: 24,
-	},
-	title: {
-		fontSize: 24,
-		fontWeight: "bold",
-		color: "#fff",
-		textAlign: "center",
-		marginBottom: 24,
-	},
-	label: {
-		color: "#fff",
-		marginBottom: 4,
-	},
-	input: {
-		backgroundColor: "#fff",
-		borderRadius: 8,
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		marginBottom: 16,
-	},
-	button: {
-		backgroundColor: "#FF9B52",
-		borderRadius: 24,
-		paddingVertical: 12,
-		alignItems: "center",
-		marginBottom: 12,
-	},
-	buttonText: {
-		color: "#fff",
-		fontWeight: "bold",
-		fontSize: 16,
-	},
-	switchText: {
-		color: "#F7853E",
-		textAlign: "center",
-	},
-});

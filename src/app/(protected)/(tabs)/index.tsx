@@ -1,7 +1,7 @@
 // src/app/(protected)/(tabs)/index.tsx
 
 import React, { useState, useCallback } from "react";
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 
 import DugnadCard from "../../../components/DugnadCard";
@@ -26,7 +26,6 @@ export default function DugnaderHomeScreen() {
 		}
 	}, []);
 
-	// 🔹 Kjøres hver gang denne skjermen får fokus (inkl. første gang)
 	useFocusEffect(
 		useCallback(() => {
 			loadDugnader();
@@ -54,9 +53,17 @@ export default function DugnaderHomeScreen() {
 				Kommende dugnader
 			</Text>
 
-			<Text className="text-gray-300 mb-6 text-sm">
+			<Text className="text-gray-300 mb-4 text-sm">
 				Finn en dugnad du vil bidra på i nærheten.
 			</Text>
+
+			{/* 🔹 Knapp for å opprette ny dugnad */}
+			<TouchableOpacity
+				onPress={() => router.push("/(protected)/createDugnad")}
+				className="mb-4 bg-emerald-600 py-2 rounded-xl items-center"
+			>
+				<Text className="text-white font-semibold">Opprett ny dugnad</Text>
+			</TouchableOpacity>
 
 			<FlatList
 				data={dugnader}

@@ -5,10 +5,11 @@ import {
 	getDocs,
 	getDoc,
 	updateDoc,
+	addDoc,
 } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
-// 🔹 Hent alle dugnader (listevisning)
+// 🔹 Hent alle dugnader
 export async function getDugnads() {
 	try {
 		const snapshot = await getDocs(collection(db, "dugnader"));
@@ -23,10 +24,10 @@ export async function getDugnads() {
 				location: data.location,
 				date: data.date,
 				maxVolunteers: data.maxVolunteers,
-				currentVolunteers: data.currentVolunteers ?? 0, // 👈 bruker feltet, ikke participants
+				currentVolunteers: data.currentVolunteers ?? 0,
 				imageUrl: data.imageUrl ?? null,
 				category: data.category ?? "Ukjent",
-				participants: data.participants ?? [], // bare ekstra info
+				participants: data.participants ?? [],
 			};
 		});
 
@@ -37,7 +38,7 @@ export async function getDugnads() {
 	}
 }
 
-// 🔹 Hent én dugnad (detaljvisning)
+// 🔹 Hent én dugnad
 export async function getDugnadById(id) {
 	try {
 		const ref = doc(db, "dugnader", id);
@@ -57,7 +58,7 @@ export async function getDugnadById(id) {
 			location: data.location,
 			date: data.date,
 			maxVolunteers: data.maxVolunteers,
-			currentVolunteers: data.currentVolunteers ?? 0, // 👈 samme her
+			currentVolunteers: data.currentVolunteers ?? 0,
 			imageUrl: data.imageUrl ?? null,
 			category: data.category ?? "Ukjent",
 			participants: data.participants ?? [],
@@ -68,13 +69,35 @@ export async function getDugnadById(id) {
 	}
 }
 
-// 🔹 Oppdater dugnad
+// 🔹 Oppdater dugnad (påmelding/avmelding)
 export async function updateDugnad(id, data) {
 	try {
 		const ref = doc(db, "dugnader", id);
 		await updateDoc(ref, data);
 	} catch (error) {
 		console.error("❌ Feil ved oppdatering av dugnad:", error);
+		throw error;
+	}
+}
+
+// 🔹 OPPRETT NY DUGNAD — (brukes i createDugnad.tsx)
+export async function createDugnad(dugnadData) {
+	try {
+		const ref = await addDoc(collection(db, "dugnader"), {
+			title: dugnadData.title,
+			description: dugnadData.description,
+			location: dugnadData.location,
+			date: dugnadData.date,
+			maxVolunteers: dugnadData.maxVolunteers,
+			currentVolunteers: 0,
+			category: dugnadData.category,
+			imageUrl: dugnadData.imageUrl ?? null,
+			participants: [],
+		});
+
+		return ref.id;
+	} catch (error) {
+		console.error("❌ Feil ved opprettelse av dugnad:", error);
 		throw error;
 	}
 }

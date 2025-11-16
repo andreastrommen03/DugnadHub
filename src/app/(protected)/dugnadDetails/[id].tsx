@@ -73,6 +73,13 @@ export default function DugnadDetailsScreen() {
 						{dugnad.title}
 					</Text>
 
+					{/* Kategori-pill, litt slik Yuan gjør med hashtags */}
+					<View className="self-start bg-orange-100 px-3 py-1 rounded-full mb-3">
+						<Text className="text-xs font-semibold text-orange-700 uppercase">
+							{dugnad.category ?? "Ukjent kategori"}
+						</Text>
+					</View>
+
 					<Text className="text-base text-gray-700 mb-4">
 						{dugnad.description}
 					</Text>

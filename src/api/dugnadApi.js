@@ -18,6 +18,7 @@ export async function getDugnads() {
 				maxVolunteers: data.maxVolunteers,
 				currentVolunteers: data.currentVolunteers,
 				imageUrl: data.imageUrl ?? null,
+				category: data.category,
 			};
 		});
 
@@ -50,6 +51,7 @@ export async function getDugnadById(id) {
 			maxVolunteers: data.maxVolunteers,
 			currentVolunteers: data.currentVolunteers,
 			imageUrl: data.imageUrl ?? null,
+			category: data.category ?? "Ukjent",
 		};
 	} catch (error) {
 		console.error("Feil ved henting av dugnad:", error);

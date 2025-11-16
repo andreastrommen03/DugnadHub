@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+// src/app/(protected)/(tabs)/index.tsx
+
+import React, { useState, useCallback } from "react";
 import { View, Text, FlatList } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 
 import DugnadCard from "../../../components/DugnadCard";
 import { DugnadData } from "../../../utils/firebaseTypes";
@@ -12,32 +14,33 @@ export default function DugnaderHomeScreen() {
 	const [dugnader, setDugnader] = useState<DugnadData[]>([]);
 	const [loading, setLoading] = useState(true);
 
-	// 🔥 Hent dugnader fra Firestore
-	useEffect(() => {
-		async function load() {
-			try {
-				const data = (await getDugnads()) as DugnadData[];
-				setDugnader(data);
-			} catch (error) {
-				console.log("Kunne ikke hente dugnader:", error);
-			} finally {
-				setLoading(false);
-			}
+	const loadDugnader = useCallback(async () => {
+		try {
+			setLoading(true);
+			const data = (await getDugnads()) as DugnadData[];
+			setDugnader(data);
+		} catch (error) {
+			console.log("Kunne ikke hente dugnader:", error);
+		} finally {
+			setLoading(false);
 		}
-
-		load();
 	}, []);
 
-	// ⏳ Laster
+	// 🔹 Kjøres hver gang denne skjermen får fokus (inkl. første gang)
+	useFocusEffect(
+		useCallback(() => {
+			loadDugnader();
+		}, [loadDugnader])
+	);
+
 	if (loading) {
 		return (
-			<View className="flex-1 bg-[#20202A] justify-center items-center">
+			<View className="flex-1 bg-[#20202A] items-center justify-center">
 				<Text className="text-white">Laster dugnader...</Text>
 			</View>
 		);
 	}
 
-	// 🎴 Render hver dugnad med komponent
 	const renderItem = ({ item }: { item: DugnadData }) => (
 		<DugnadCard
 			dugnad={item}

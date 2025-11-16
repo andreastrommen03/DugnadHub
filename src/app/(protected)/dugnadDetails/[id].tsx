@@ -1,15 +1,28 @@
 // src/app/(protected)/dugnadDetails/[id].tsx
+
 import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, Image, ScrollView } from "react-native";
+import {
+	View,
+	Text,
+	ActivityIndicator,
+	Image,
+	ScrollView,
+	TouchableOpacity,
+} from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { DugnadData } from "../../../utils/firebaseTypes";
-import { getDugnadById } from "../../../api/dugnadApi";
+import { getDugnadById, updateDugnad } from "../../../api/dugnadApi";
+import { useAuthSession } from "../../../providers/authctx";
 
 export default function DugnadDetailsScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 
 	const [dugnad, setDugnad] = useState<DugnadData | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [isUpdating, setIsUpdating] = useState(false);
+
+	const { user } = useAuthSession();
+	const userId = user?.email ?? user?.uid ?? "Ukjent";
 
 	useEffect(() => {
 		async function load() {
@@ -27,6 +40,44 @@ export default function DugnadDetailsScreen() {
 
 		load();
 	}, [id]);
+
+	const handleToggleJoin = async () => {
+		if (!dugnad || !userId) return;
+
+		setIsUpdating(true);
+
+		const currentParticipants = dugnad.participants ?? [];
+		const alreadyJoined = currentParticipants.includes(userId);
+
+		const updatedParticipants = alreadyJoined
+			? currentParticipants.filter((p) => p !== userId)
+			: [...currentParticipants, userId];
+
+		// 🔹 Beregn nytt antall påmeldte ut fra det som var der fra før
+		const newCount = alreadyJoined
+			? Math.max(0, dugnad.currentVolunteers - 1)
+			: dugnad.currentVolunteers + 1;
+
+		const updatedDugnad: DugnadData = {
+			...dugnad,
+			participants: updatedParticipants,
+			currentVolunteers: newCount,
+		};
+
+		// Oppdater UI med én gang
+		setDugnad(updatedDugnad);
+
+		try {
+			await updateDugnad(dugnad.id, {
+				participants: updatedParticipants,
+				currentVolunteers: newCount,
+			});
+		} catch (error) {
+			console.error("❌ Feil ved oppdatering av dugnad:", error);
+		} finally {
+			setIsUpdating(false);
+		}
+	};
 
 	if (loading) {
 		return (
@@ -48,6 +99,10 @@ export default function DugnadDetailsScreen() {
 		);
 	}
 
+	const participants = dugnad.participants ?? [];
+	const alreadyJoined = participants.includes(userId);
+	const isFull = dugnad.currentVolunteers >= dugnad.maxVolunteers;
+
 	return (
 		<View className="flex-1 bg-[#20202A]">
 			{/* Header-tittel (som Yuan gjør) */}
@@ -68,12 +123,12 @@ export default function DugnadDetailsScreen() {
 				) : null}
 
 				{/* Kort med innhold */}
-				<View className="bg-white rounded-2xl p-5 mb-4">
+				<View className="bg-white rounded-2xl p-5 mb-6">
 					<Text className="text-2xl font-bold text-gray-900 mb-2">
 						{dugnad.title}
 					</Text>
 
-					{/* Kategori-pill, litt slik Yuan gjør med hashtags */}
+					{/* Kategori-pill */}
 					<View className="self-start bg-orange-100 px-3 py-1 rounded-full mb-3">
 						<Text className="text-xs font-semibold text-orange-700 uppercase">
 							{dugnad.category ?? "Ukjent kategori"}
@@ -106,7 +161,26 @@ export default function DugnadDetailsScreen() {
 					</Text>
 				</View>
 
-				{/* Her kan vi senere legge til "Meld meg på"-knapp osv */}
+				{/* Påmeldingsknapp */}
+				<View className="mb-10">
+					{isFull && !alreadyJoined ? (
+						<View className="bg-gray-600 py-3 rounded-xl items-center">
+							<Text className="text-white font-semibold">Dugnaden er full</Text>
+						</View>
+					) : (
+						<TouchableOpacity
+							onPress={handleToggleJoin}
+							disabled={isUpdating}
+							className={`py-3 rounded-xl items-center ${
+								alreadyJoined ? "bg-red-600" : "bg-emerald-600"
+							}`}
+						>
+							<Text className="text-white font-semibold text-lg">
+								{alreadyJoined ? "Meld meg av" : "Meld meg på dugnaden"}
+							</Text>
+						</TouchableOpacity>
+					)}
+				</View>
 			</ScrollView>
 		</View>
 	);

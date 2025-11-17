@@ -11,10 +11,16 @@ export default function AuthenticationScreen() {
 	const [mode, setMode] = useState<"login" | "register">("register");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [username, setUsername] = useState(""); // 👈 nytt
 
 	const submit = async () => {
-		if (!email || !password) {
-			Alert.alert("Feil", "Fyll inn både e-post og passord.");
+		if (!email || !password || (mode === "register" && !username.trim())) {
+			Alert.alert(
+				"Feil",
+				mode === "register"
+					? "Fyll inn e-post, passord og navn/brukernavn."
+					: "Fyll inn både e-post og passord."
+			);
 			return;
 		}
 
@@ -22,8 +28,10 @@ export default function AuthenticationScreen() {
 			if (mode === "login") {
 				await signIn(email.trim(), password);
 			} else {
-				await signUp(email.trim(), password);
+				// 👇 Yuan-stil: signUp(email, password, username)
+				await signUp(email.trim(), password, username.trim());
 			}
+
 			router.replace("/(protected)/(tabs)");
 		} catch (e: any) {
 			Alert.alert("Feil", e?.message ?? "Kunne ikke logge inn.");
@@ -35,6 +43,20 @@ export default function AuthenticationScreen() {
 			<Text className="text-white text-3xl font-bold text-center mb-8">
 				{mode === "login" ? "Logg inn" : "Registrer deg"}
 			</Text>
+
+			{/* Bare ved registrering: navn/brukernavn */}
+			{mode === "register" && (
+				<>
+					<Text className="text-white mb-1">Navn / brukernavn</Text>
+					<TextInput
+						className="bg-white rounded-xl px-4 py-3 mb-4"
+						value={username}
+						onChangeText={setUsername}
+						placeholder="F.eks. Ola Normann"
+						placeholderTextColor="#9ca3af"
+					/>
+				</>
+			)}
 
 			<Text className="text-white mb-1">E-post</Text>
 			<TextInput

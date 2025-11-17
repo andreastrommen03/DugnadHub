@@ -7,14 +7,15 @@ import React, {
 	ReactNode,
 } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "../../firebaseConfig"; // 🚨 legg merke til ../../
-import { signInWithEmail, signUpWithEmail, signOutUser } from "../api/authApi";
+import { auth } from "../../firebaseConfig";
+import * as authApi from "../api/authApi";
 
 type AuthContextType = {
 	user: User | null;
 	isLoading: boolean;
+	userNameSession: string | null; // 👈 nytt, i Yuan-stil
 	signIn: (email: string, password: string) => Promise<void>;
-	signUp: (email: string, password: string) => Promise<void>;
+	signUp: (email: string, password: string, username: string) => Promise<void>;
 	signOut: () => Promise<void>;
 };
 
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }: Props) => {
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 
+	// 🔹 Lytt til Firebase-auth endringer
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
 			setUser(firebaseUser ?? null);
@@ -40,16 +42,20 @@ export const AuthProvider = ({ children }: Props) => {
 	const handleSignIn = async (email: string, password: string) => {
 		setIsLoading(true);
 		try {
-			await signInWithEmail(email, password);
+			await authApi.signIn(email, password);
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
-	const handleSignUp = async (email: string, password: string) => {
+	const handleSignUp = async (
+		email: string,
+		password: string,
+		username: string
+	) => {
 		setIsLoading(true);
 		try {
-			await signUpWithEmail(email, password);
+			await authApi.signUp(email, password, username);
 		} finally {
 			setIsLoading(false);
 		}
@@ -58,15 +64,18 @@ export const AuthProvider = ({ children }: Props) => {
 	const handleSignOut = async () => {
 		setIsLoading(true);
 		try {
-			await signOutUser();
+			await authApi.signOut();
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
+	const userNameSession = user?.displayName ?? user?.email ?? null; // 👈 veldig likt Yuan
+
 	const value: AuthContextType = {
 		user,
 		isLoading,
+		userNameSession,
 		signIn: handleSignIn,
 		signUp: handleSignUp,
 		signOut: handleSignOut,

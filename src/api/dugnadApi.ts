@@ -1,4 +1,4 @@
-// src/api/dugnadApi.js
+// src/api/dugnadApi.ts
 import {
 	collection,
 	doc,
@@ -8,16 +8,17 @@ import {
 	addDoc,
 } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
+import { DugnadData } from "../utils/firebaseTypes";
 
 // 🔹 Hent alle dugnader
-export async function getDugnads() {
+export async function getDugnads(): Promise<DugnadData[]> {
 	try {
 		const snapshot = await getDocs(collection(db, "dugnader"));
 
-		const dugnader = snapshot.docs.map((docSnap) => {
+		return snapshot.docs.map((docSnap) => {
 			const data = docSnap.data();
 
-			const imageUrls =
+			const imageUrls: string[] =
 				data.imageUrls ?? (data.imageUrl ? [data.imageUrl] : []);
 
 			return {
@@ -34,8 +35,6 @@ export async function getDugnads() {
 				participants: data.participants ?? [],
 			};
 		});
-
-		return dugnader;
 	} catch (error) {
 		console.error("❌ Feil ved henting av dugnader:", error);
 		throw error;
@@ -43,7 +42,7 @@ export async function getDugnads() {
 }
 
 // 🔹 Hent én dugnad
-export async function getDugnadById(id) {
+export async function getDugnadById(id: string): Promise<DugnadData | null> {
 	try {
 		const ref = doc(db, "dugnader", id);
 		const snap = await getDoc(ref);
@@ -55,7 +54,8 @@ export async function getDugnadById(id) {
 
 		const data = snap.data();
 
-		const imageUrls = data.imageUrls ?? (data.imageUrl ? [data.imageUrl] : []);
+		const imageUrls: string[] =
+			data.imageUrls ?? (data.imageUrl ? [data.imageUrl] : []);
 
 		return {
 			id: snap.id,
@@ -76,8 +76,11 @@ export async function getDugnadById(id) {
 	}
 }
 
-// 🔹 Oppdater dugnad (påmelding osv.)
-export async function updateDugnad(id, data) {
+// 🔹 Oppdater dugnad (påmelding, avmelding, osv.)
+export async function updateDugnad(
+	id: string,
+	data: Partial<DugnadData>
+): Promise<void> {
 	try {
 		const ref = doc(db, "dugnader", id);
 		await updateDoc(ref, data);
@@ -87,8 +90,10 @@ export async function updateDugnad(id, data) {
 	}
 }
 
-// 🔹 Opprett ny dugnad – nå med imageUrls
-export async function createDugnad(dugnadData) {
+// 🔹 Opprett ny dugnad – lagrer imageUrl + imageUrls
+export async function createDugnad(
+	dugnadData: Partial<DugnadData>
+): Promise<string> {
 	try {
 		const ref = await addDoc(collection(db, "dugnader"), {
 			title: dugnadData.title,
@@ -98,10 +103,12 @@ export async function createDugnad(dugnadData) {
 			maxVolunteers: dugnadData.maxVolunteers,
 			currentVolunteers: 0,
 			category: dugnadData.category,
+			// 👇 Første bilde brukes som "hovedbilde"
 			imageUrl:
 				dugnadData.imageUrls && dugnadData.imageUrls.length > 0
 					? dugnadData.imageUrls[0]
 					: null,
+			// 👇 Hele lista lagres også
 			imageUrls: dugnadData.imageUrls ?? [],
 			participants: [],
 		});

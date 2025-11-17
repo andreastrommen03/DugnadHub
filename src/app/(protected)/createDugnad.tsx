@@ -15,10 +15,9 @@ import {
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import { uploadBytes, getDownloadURL } from "firebase/storage";
 
 import { createDugnad } from "../../api/dugnadApi";
-import { getStorageRef } from "../../../firebaseConfig";
+import { uploadImageToFirebase } from "../../api/imageApi";
 
 export default function CreateDugnadScreen() {
 	const router = useRouter();
@@ -31,24 +30,18 @@ export default function CreateDugnadScreen() {
 	const [category, setCategory] = useState("");
 
 	const [localImages, setLocalImages] = useState<string[]>([]);
-
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const uploadImagesToStorage = async (uris: string[]): Promise<string[]> => {
+	// 🔹 Liten helper som bruker imageApi på alle bilder (lik ide som Yuan i postApi)
+	const uploadAllImages = async (uris: string[]): Promise<string[]> => {
 		const urls: string[] = [];
 
 		for (const uri of uris) {
-			const response = await fetch(uri);
-			const blob = await response.blob();
-
-			const filename = `dugnadImages/${Date.now()}-${Math.random()
-				.toString(36)
-				.slice(2)}.jpg`;
-			const storageRef = getStorageRef(filename);
-
-			await uploadBytes(storageRef, blob);
-			const downloadUrl = await getDownloadURL(storageRef);
-			urls.push(downloadUrl);
+			if (!uri) continue;
+			const uploadedUrl = await uploadImageToFirebase(uri);
+			if (uploadedUrl) {
+				urls.push(uploadedUrl);
+			}
 		}
 
 		return urls;
@@ -65,7 +58,9 @@ export default function CreateDugnadScreen() {
 		}
 
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
+			// Yuan bruker MediaTypeOptions.Images, her bruker vi "images"
+			// som er samme verdi, bare uten TS-advarsel.
+			mediaTypes: "images",
 			allowsMultipleSelection: true,
 			quality: 0.8,
 		});
@@ -112,23 +107,24 @@ export default function CreateDugnadScreen() {
 		}
 
 		const max = Number(maxVolunteers);
-
 		setIsSubmitting(true);
 
 		try {
+			// 1) Last opp alle bilder (eller bruk lokal URI på web)
 			let imageUrls: string[] = [];
 			if (localImages.length > 0) {
 				try {
-					imageUrls = await uploadImagesToStorage(localImages);
+					imageUrls = await uploadAllImages(localImages);
 				} catch (err) {
 					console.error("Feil ved opplasting av bilder:", err);
 					Alert.alert(
 						"Bildefeil",
-						"Klarte ikke å laste opp alle bildene. Du kan prøve igjen, eller lagre dugnaden uten bilder."
+						"Klarte ikke å laste opp alle bildene. Dugnaden lagres uten bilder."
 					);
 				}
 			}
 
+			// 2) Opprett dugnaden i Firestore (dugnadApi tar seg av imageUrl + imageUrls)
 			await createDugnad({
 				title: title.trim(),
 				description: description.trim(),

@@ -8,15 +8,29 @@ import {
 	addDoc,
 } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
+import { uploadImageToFirebase } from "./imageApi";
 import { DugnadData } from "../utils/firebaseTypes";
 
-// 🔹 Hent alle dugnader
+// ---------- Typer ----------
+
+type NewDugnadInput = {
+	title: string;
+	description: string;
+	location: string;
+	date: string;
+	maxVolunteers: number;
+	category: string;
+	images?: string[]; // rå URIs fra ImagePicker
+};
+
+// ---------- Hent alle dugnader ----------
+
 export async function getDugnads(): Promise<DugnadData[]> {
 	try {
 		const snapshot = await getDocs(collection(db, "dugnader"));
 
 		return snapshot.docs.map((docSnap) => {
-			const data = docSnap.data();
+			const data = docSnap.data() as any;
 
 			const imageUrls: string[] =
 				data.imageUrls ?? (data.imageUrl ? [data.imageUrl] : []);
@@ -30,7 +44,7 @@ export async function getDugnads(): Promise<DugnadData[]> {
 				maxVolunteers: data.maxVolunteers,
 				currentVolunteers: data.currentVolunteers ?? 0,
 				category: data.category ?? "Ukjent",
-				imageUrl: data.imageUrl ?? imageUrls[0] ?? null,
+				imageUrl: imageUrls[0] ?? null,
 				imageUrls,
 				participants: data.participants ?? [],
 			};
@@ -41,7 +55,8 @@ export async function getDugnads(): Promise<DugnadData[]> {
 	}
 }
 
-// 🔹 Hent én dugnad
+// ---------- Hent én dugnad ----------
+
 export async function getDugnadById(id: string): Promise<DugnadData | null> {
 	try {
 		const ref = doc(db, "dugnader", id);
@@ -52,8 +67,7 @@ export async function getDugnadById(id: string): Promise<DugnadData | null> {
 			return null;
 		}
 
-		const data = snap.data();
-
+		const data = snap.data() as any;
 		const imageUrls: string[] =
 			data.imageUrls ?? (data.imageUrl ? [data.imageUrl] : []);
 
@@ -66,7 +80,7 @@ export async function getDugnadById(id: string): Promise<DugnadData | null> {
 			maxVolunteers: data.maxVolunteers,
 			currentVolunteers: data.currentVolunteers ?? 0,
 			category: data.category ?? "Ukjent",
-			imageUrl: data.imageUrl ?? imageUrls[0] ?? null,
+			imageUrl: imageUrls[0] ?? null,
 			imageUrls,
 			participants: data.participants ?? [],
 		};
@@ -76,44 +90,56 @@ export async function getDugnadById(id: string): Promise<DugnadData | null> {
 	}
 }
 
-// 🔹 Oppdater dugnad (påmelding, avmelding, osv.)
-export async function updateDugnad(
-	id: string,
-	data: Partial<DugnadData>
-): Promise<void> {
+// ---------- Oppdater dugnad (påmelding osv.) ----------
+
+export async function updateDugnad(id: string, data: Partial<DugnadData>) {
 	try {
 		const ref = doc(db, "dugnader", id);
-		await updateDoc(ref, data);
+		await updateDoc(ref, data as any);
 	} catch (error) {
 		console.error("❌ Feil ved oppdatering av dugnad:", error);
 		throw error;
 	}
 }
 
-// 🔹 Opprett ny dugnad – lagrer imageUrl + imageUrls
-export async function createDugnad(
-	dugnadData: Partial<DugnadData>
-): Promise<string> {
+// ---------- Opprett ny dugnad (inkl. bildefiler) ----------
+
+export async function createDugnad(input: NewDugnadInput) {
 	try {
-		const ref = await addDoc(collection(db, "dugnader"), {
-			title: dugnadData.title,
-			description: dugnadData.description,
-			location: dugnadData.location,
-			date: dugnadData.date,
-			maxVolunteers: dugnadData.maxVolunteers,
+		// 1) Last opp bilder hvis noen er valgt
+		let imageUrls: string[] = [];
+
+		if (input.images && input.images.length > 0) {
+			const uploaded: string[] = [];
+
+			for (const uri of input.images) {
+				const url = await uploadImageToFirebase(uri);
+				if (url) {
+					uploaded.push(url);
+				} else {
+					console.warn("⚠️ Klarte ikke å laste opp et bilde, hopper over.");
+				}
+			}
+
+			imageUrls = uploaded;
+		}
+
+		// 2) Lag Firestore-dokument
+		const docRef = await addDoc(collection(db, "dugnader"), {
+			title: input.title,
+			description: input.description,
+			location: input.location,
+			date: input.date,
+			maxVolunteers: input.maxVolunteers,
 			currentVolunteers: 0,
-			category: dugnadData.category,
-			// 👇 Første bilde brukes som "hovedbilde"
-			imageUrl:
-				dugnadData.imageUrls && dugnadData.imageUrls.length > 0
-					? dugnadData.imageUrls[0]
-					: null,
-			// 👇 Hele lista lagres også
-			imageUrls: dugnadData.imageUrls ?? [],
+			category: input.category,
+			imageUrl: imageUrls[0] ?? null,
+			imageUrls,
 			participants: [],
 		});
 
-		return ref.id;
+		console.log("✅ DUGNAD OPPRETTET med id:", docRef.id);
+		return docRef.id;
 	} catch (error) {
 		console.error("❌ Feil ved opprettelse av dugnad:", error);
 		throw error;

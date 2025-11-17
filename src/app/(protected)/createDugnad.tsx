@@ -1,12 +1,11 @@
 // src/app/(protected)/createDugnad.tsx
-
 import React, { useState } from "react";
 import {
 	View,
 	Text,
 	TextInput,
 	ScrollView,
-	TouchableOpacity,
+	Pressable,
 	Alert,
 	ActivityIndicator,
 	KeyboardAvoidingView,
@@ -17,7 +16,6 @@ import { Stack, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 
 import { createDugnad } from "../../api/dugnadApi";
-import { uploadImageToFirebase } from "../../api/imageApi";
 
 export default function CreateDugnadScreen() {
 	const router = useRouter();
@@ -29,24 +27,12 @@ export default function CreateDugnadScreen() {
 	const [maxVolunteers, setMaxVolunteers] = useState("");
 	const [category, setCategory] = useState("");
 
+	// Lokale URIs fra ImagePicker – sendes til createDugnad,
+	// som igjen kaller uploadImageToFirebase (Yuan-stil)
 	const [localImages, setLocalImages] = useState<string[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	// 🔹 Liten helper som bruker imageApi på alle bilder (lik ide som Yuan i postApi)
-	const uploadAllImages = async (uris: string[]): Promise<string[]> => {
-		const urls: string[] = [];
-
-		for (const uri of uris) {
-			if (!uri) continue;
-			const uploadedUrl = await uploadImageToFirebase(uri);
-			if (uploadedUrl) {
-				urls.push(uploadedUrl);
-			}
-		}
-
-		return urls;
-	};
-
+	// 📌 Velg bilder fra galleri (samme mønster som Yuan)
 	const pickFromLibrary = async () => {
 		const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
 		if (!perm.granted) {
@@ -58,10 +44,10 @@ export default function CreateDugnadScreen() {
 		}
 
 		const result = await ImagePicker.launchImageLibraryAsync({
-			// Yuan bruker MediaTypeOptions.Images, her bruker vi "images"
-			// som er samme verdi, bare uten TS-advarsel.
-			mediaTypes: "images",
+			mediaTypes: ImagePicker.MediaTypeOptions.Images,
+			allowsEditing: true,
 			allowsMultipleSelection: true,
+			aspect: [4, 3],
 			quality: 0.8,
 		});
 
@@ -70,6 +56,7 @@ export default function CreateDugnadScreen() {
 		}
 	};
 
+	// 📌 Ta bilde med kamera
 	const pickFromCamera = async () => {
 		const perm = await ImagePicker.requestCameraPermissionsAsync();
 		if (!perm.granted) {
@@ -89,6 +76,7 @@ export default function CreateDugnadScreen() {
 		}
 	};
 
+	// 📌 Opprett dugnad – selve bilde-opplastingen skjer i dugnadApi.createDugnad
 	const handleCreate = async () => {
 		if (!title.trim() || !description.trim() || !location.trim()) {
 			Alert.alert(
@@ -110,21 +98,6 @@ export default function CreateDugnadScreen() {
 		setIsSubmitting(true);
 
 		try {
-			// 1) Last opp alle bilder (eller bruk lokal URI på web)
-			let imageUrls: string[] = [];
-			if (localImages.length > 0) {
-				try {
-					imageUrls = await uploadAllImages(localImages);
-				} catch (err) {
-					console.error("Feil ved opplasting av bilder:", err);
-					Alert.alert(
-						"Bildefeil",
-						"Klarte ikke å laste opp alle bildene. Dugnaden lagres uten bilder."
-					);
-				}
-			}
-
-			// 2) Opprett dugnaden i Firestore (dugnadApi tar seg av imageUrl + imageUrls)
 			await createDugnad({
 				title: title.trim(),
 				description: description.trim(),
@@ -132,7 +105,7 @@ export default function CreateDugnadScreen() {
 				date: date.trim(),
 				maxVolunteers: max,
 				category: category.trim() || "Ukjent",
-				imageUrls,
+				images: localImages, // 👈 rå URIs – createDugnad laster dem opp
 			});
 
 			router.replace("/(protected)/(tabs)");
@@ -218,7 +191,7 @@ export default function CreateDugnadScreen() {
 						/>
 					</View>
 
-					{/* Dato / tidspunkt */}
+					{/* Dato */}
 					<View className="mb-4">
 						<Text className="text-gray-200 mb-1">Dato og tidspunkt</Text>
 						<TextInput
@@ -243,7 +216,7 @@ export default function CreateDugnadScreen() {
 						/>
 					</View>
 
-					{/* 🔹 Bilde-seksjon */}
+					{/* Bilder */}
 					<View className="mb-6">
 						<Text className="text-gray-200 mb-2">Bilder (valgfritt)</Text>
 
@@ -269,28 +242,28 @@ export default function CreateDugnadScreen() {
 						)}
 
 						<View className="flex-row gap-3">
-							<TouchableOpacity
+							<Pressable
 								onPress={pickFromLibrary}
 								className="flex-1 bg-sky-600 py-2 rounded-xl items-center"
 							>
 								<Text className="text-white font-semibold text-sm">
 									Velg fra galleri
 								</Text>
-							</TouchableOpacity>
+							</Pressable>
 
-							<TouchableOpacity
+							<Pressable
 								onPress={pickFromCamera}
 								className="flex-1 bg-indigo-600 py-2 rounded-xl items-center"
 							>
 								<Text className="text-white font-semibold text-sm">
 									Ta bilde
 								</Text>
-							</TouchableOpacity>
+							</Pressable>
 						</View>
 					</View>
 
-					{/* Knapp */}
-					<TouchableOpacity
+					{/* Opprett-knapp */}
+					<Pressable
 						onPress={handleCreate}
 						disabled={isSubmitting}
 						className={`py-3 rounded-xl items-center ${
@@ -304,7 +277,7 @@ export default function CreateDugnadScreen() {
 								Opprett dugnad
 							</Text>
 						)}
-					</TouchableOpacity>
+					</Pressable>
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</View>

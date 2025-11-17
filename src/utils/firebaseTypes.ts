@@ -9,4 +9,7 @@ export type DugnadData = {
 	maxVolunteers: number;
 	currentVolunteers: number;
 	imageUrl?: string; // hvis du har det
+	imageUrls?: string[];
+	category: string; //
+	participants?: string[];
 };

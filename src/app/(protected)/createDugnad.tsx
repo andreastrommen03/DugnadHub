@@ -11,9 +11,14 @@ import {
 	ActivityIndicator,
 	KeyboardAvoidingView,
 	Platform,
+	Image,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import { uploadBytes, getDownloadURL } from "firebase/storage";
+
 import { createDugnad } from "../../api/dugnadApi";
+import { getStorageRef } from "../../../firebaseConfig";
 
 export default function CreateDugnadScreen() {
 	const router = useRouter();
@@ -24,7 +29,70 @@ export default function CreateDugnadScreen() {
 	const [date, setDate] = useState("");
 	const [maxVolunteers, setMaxVolunteers] = useState("");
 	const [category, setCategory] = useState("");
+
+	const [localImages, setLocalImages] = useState<string[]>([]);
+
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const uploadImagesToStorage = async (uris: string[]): Promise<string[]> => {
+		const urls: string[] = [];
+
+		for (const uri of uris) {
+			const response = await fetch(uri);
+			const blob = await response.blob();
+
+			const filename = `dugnadImages/${Date.now()}-${Math.random()
+				.toString(36)
+				.slice(2)}.jpg`;
+			const storageRef = getStorageRef(filename);
+
+			await uploadBytes(storageRef, blob);
+			const downloadUrl = await getDownloadURL(storageRef);
+			urls.push(downloadUrl);
+		}
+
+		return urls;
+	};
+
+	const pickFromLibrary = async () => {
+		const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (!perm.granted) {
+			Alert.alert(
+				"Tillatelse nødvendig",
+				"Du må gi tilgang til bilder for å velge fra galleri."
+			);
+			return;
+		}
+
+		const result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ImagePicker.MediaTypeOptions.Images,
+			allowsMultipleSelection: true,
+			quality: 0.8,
+		});
+
+		if (!result.canceled && result.assets.length > 0) {
+			setLocalImages((prev) => [...prev, ...result.assets.map((a) => a.uri)]);
+		}
+	};
+
+	const pickFromCamera = async () => {
+		const perm = await ImagePicker.requestCameraPermissionsAsync();
+		if (!perm.granted) {
+			Alert.alert(
+				"Tillatelse nødvendig",
+				"Du må gi tilgang til kamera for å ta bilde."
+			);
+			return;
+		}
+
+		const result = await ImagePicker.launchCameraAsync({
+			quality: 0.8,
+		});
+
+		if (!result.canceled && result.assets.length > 0) {
+			setLocalImages((prev) => [...prev, result.assets[0].uri]);
+		}
+	};
 
 	const handleCreate = async () => {
 		if (!title.trim() || !description.trim() || !location.trim()) {
@@ -48,17 +116,29 @@ export default function CreateDugnadScreen() {
 		setIsSubmitting(true);
 
 		try {
+			let imageUrls: string[] = [];
+			if (localImages.length > 0) {
+				try {
+					imageUrls = await uploadImagesToStorage(localImages);
+				} catch (err) {
+					console.error("Feil ved opplasting av bilder:", err);
+					Alert.alert(
+						"Bildefeil",
+						"Klarte ikke å laste opp alle bildene. Du kan prøve igjen, eller lagre dugnaden uten bilder."
+					);
+				}
+			}
+
 			await createDugnad({
 				title: title.trim(),
 				description: description.trim(),
 				location: location.trim(),
-				date: date.trim(), // enkel string, det er greit for eksamen
+				date: date.trim(),
 				maxVolunteers: max,
 				category: category.trim() || "Ukjent",
-				imageUrl: null, // vi legger til ekte bilde senere
+				imageUrls,
 			});
 
-			// Tilbake til dugnad-listen
 			router.replace("/(protected)/(tabs)");
 		} catch (error) {
 			console.error("Feil ved oppretting av dugnad:", error);
@@ -165,6 +245,52 @@ export default function CreateDugnadScreen() {
 							keyboardType="number-pad"
 							className="bg-[#111827] text-white px-3 py-2 rounded-lg border border-gray-700"
 						/>
+					</View>
+
+					{/* 🔹 Bilde-seksjon */}
+					<View className="mb-6">
+						<Text className="text-gray-200 mb-2">Bilder (valgfritt)</Text>
+
+						{localImages.length > 0 ? (
+							<ScrollView
+								horizontal
+								showsHorizontalScrollIndicator={false}
+								className="mb-3"
+							>
+								{localImages.map((uri, idx) => (
+									<Image
+										key={`${uri}-${idx}`}
+										source={{ uri }}
+										className="w-32 h-32 rounded-lg mr-3"
+										resizeMode="cover"
+									/>
+								))}
+							</ScrollView>
+						) : (
+							<Text className="text-gray-400 mb-3 text-sm">
+								Du har ikke valgt noen bilder ennå.
+							</Text>
+						)}
+
+						<View className="flex-row gap-3">
+							<TouchableOpacity
+								onPress={pickFromLibrary}
+								className="flex-1 bg-sky-600 py-2 rounded-xl items-center"
+							>
+								<Text className="text-white font-semibold text-sm">
+									Velg fra galleri
+								</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								onPress={pickFromCamera}
+								className="flex-1 bg-indigo-600 py-2 rounded-xl items-center"
+							>
+								<Text className="text-white font-semibold text-sm">
+									Ta bilde
+								</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
 
 					{/* Knapp */}

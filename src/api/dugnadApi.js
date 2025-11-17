@@ -17,6 +17,9 @@ export async function getDugnads() {
 		const dugnader = snapshot.docs.map((docSnap) => {
 			const data = docSnap.data();
 
+			const imageUrls =
+				data.imageUrls ?? (data.imageUrl ? [data.imageUrl] : []);
+
 			return {
 				id: docSnap.id,
 				title: data.title,
@@ -25,8 +28,9 @@ export async function getDugnads() {
 				date: data.date,
 				maxVolunteers: data.maxVolunteers,
 				currentVolunteers: data.currentVolunteers ?? 0,
-				imageUrl: data.imageUrl ?? null,
 				category: data.category ?? "Ukjent",
+				imageUrl: data.imageUrl ?? imageUrls[0] ?? null,
+				imageUrls,
 				participants: data.participants ?? [],
 			};
 		});
@@ -51,6 +55,8 @@ export async function getDugnadById(id) {
 
 		const data = snap.data();
 
+		const imageUrls = data.imageUrls ?? (data.imageUrl ? [data.imageUrl] : []);
+
 		return {
 			id: snap.id,
 			title: data.title,
@@ -59,8 +65,9 @@ export async function getDugnadById(id) {
 			date: data.date,
 			maxVolunteers: data.maxVolunteers,
 			currentVolunteers: data.currentVolunteers ?? 0,
-			imageUrl: data.imageUrl ?? null,
 			category: data.category ?? "Ukjent",
+			imageUrl: data.imageUrl ?? imageUrls[0] ?? null,
+			imageUrls,
 			participants: data.participants ?? [],
 		};
 	} catch (error) {
@@ -69,7 +76,7 @@ export async function getDugnadById(id) {
 	}
 }
 
-// 🔹 Oppdater dugnad (påmelding/avmelding)
+// 🔹 Oppdater dugnad (påmelding osv.)
 export async function updateDugnad(id, data) {
 	try {
 		const ref = doc(db, "dugnader", id);
@@ -80,7 +87,7 @@ export async function updateDugnad(id, data) {
 	}
 }
 
-// 🔹 OPPRETT NY DUGNAD — (brukes i createDugnad.tsx)
+// 🔹 Opprett ny dugnad – nå med imageUrls
 export async function createDugnad(dugnadData) {
 	try {
 		const ref = await addDoc(collection(db, "dugnader"), {
@@ -91,7 +98,11 @@ export async function createDugnad(dugnadData) {
 			maxVolunteers: dugnadData.maxVolunteers,
 			currentVolunteers: 0,
 			category: dugnadData.category,
-			imageUrl: dugnadData.imageUrl ?? null,
+			imageUrl:
+				dugnadData.imageUrls && dugnadData.imageUrls.length > 0
+					? dugnadData.imageUrls[0]
+					: null,
+			imageUrls: dugnadData.imageUrls ?? [],
 			participants: [],
 		});
 

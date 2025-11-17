@@ -53,7 +53,7 @@ export default function DugnadDetailsScreen() {
 			? currentParticipants.filter((p) => p !== userId)
 			: [...currentParticipants, userId];
 
-		// 🔹 Beregn nytt antall påmeldte ut fra det som var der fra før
+		// 🔹 juster antall basert på tidligere currentVolunteers
 		const newCount = alreadyJoined
 			? Math.max(0, dugnad.currentVolunteers - 1)
 			: dugnad.currentVolunteers + 1;
@@ -64,7 +64,7 @@ export default function DugnadDetailsScreen() {
 			currentVolunteers: newCount,
 		};
 
-		// Oppdater UI med én gang
+		// Oppdater UI direkte
 		setDugnad(updatedDugnad);
 
 		try {
@@ -114,7 +114,23 @@ export default function DugnadDetailsScreen() {
 
 			<ScrollView contentContainerClassName="px-4 pt-6 pb-10">
 				{/* Bilde hvis det finnes */}
-				{dugnad.imageUrl ? (
+				{dugnad.imageUrls && dugnad.imageUrls.length > 0 ? (
+					<ScrollView
+						horizontal
+						pagingEnabled
+						showsHorizontalScrollIndicator={false}
+						className="w-full h-56 rounded-2xl mb-4"
+					>
+						{dugnad.imageUrls.map((url, idx) => (
+							<Image
+								key={`${url}-${idx}`}
+								source={{ uri: url }}
+								className="w-80 h-56 mr-2 rounded-2xl"
+								resizeMode="cover"
+							/>
+						))}
+					</ScrollView>
+				) : dugnad.imageUrl ? (
 					<Image
 						source={{ uri: dugnad.imageUrl }}
 						className="w-full h-56 rounded-2xl mb-4"
@@ -159,6 +175,27 @@ export default function DugnadDetailsScreen() {
 							{dugnad.currentVolunteers}/{dugnad.maxVolunteers}
 						</Text>
 					</Text>
+				</View>
+
+				{/* 🔹 Deltakerliste */}
+				<View className="bg-[#111827] rounded-2xl p-4 mb-8">
+					<Text className="text-white text-lg font-semibold mb-2">
+						Deltakere
+					</Text>
+
+					{participants.length === 0 ? (
+						<Text className="text-gray-400 text-sm">
+							Ingen er påmeldt enda. Vær den første som melder deg på!
+						</Text>
+					) : (
+						<View className="space-y-1">
+							{participants.map((p, index) => (
+								<Text key={`${p}-${index}`} className="text-gray-200 text-sm">
+									• {p}
+								</Text>
+							))}
+						</View>
+					)}
 				</View>
 
 				{/* Påmeldingsknapp */}

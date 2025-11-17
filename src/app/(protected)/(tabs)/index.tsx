@@ -1,7 +1,7 @@
 // src/app/(protected)/(tabs)/index.tsx
 
-import React, { useState, useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import React, { useState, useCallback, useMemo } from "react";
+import { View, Text, FlatList, Pressable, TextInput } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 
 import DugnadCard from "../../../components/DugnadCard";
@@ -13,6 +13,7 @@ export default function DugnaderHomeScreen() {
 
 	const [dugnader, setDugnader] = useState<DugnadData[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [search, setSearch] = useState("");
 
 	const loadDugnader = useCallback(async () => {
 		try {
@@ -31,6 +32,18 @@ export default function DugnaderHomeScreen() {
 			loadDugnader();
 		}, [loadDugnader])
 	);
+
+	// 🔍 Live-filtering på tittel + kategori (Yuan-style, client-side)
+	const filteredDugnader = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		if (!q) return dugnader;
+
+		return dugnader.filter((d) => {
+			const title = d.title?.toLowerCase() ?? "";
+			const category = d.category?.toLowerCase() ?? "";
+			return title.includes(q) || category.includes(q);
+		});
+	}, [search, dugnader]);
 
 	if (loading) {
 		return (
@@ -53,24 +66,39 @@ export default function DugnaderHomeScreen() {
 				Kommende dugnader
 			</Text>
 
-			<Text className="text-gray-300 mb-4 text-sm">
+			<Text className="text-gray-300 mb-3 text-sm">
 				Finn en dugnad du vil bidra på i nærheten.
 			</Text>
 
+			{/* 🔍 Søkefelt */}
+			<TextInput
+				value={search}
+				onChangeText={setSearch}
+				placeholder="Søk på tittel eller kategori..."
+				placeholderTextColor="#9CA3AF"
+				className="bg-[#111827] text-white px-4 py-2 rounded-xl mb-4 border border-gray-700"
+			/>
+
 			{/* 🔹 Knapp for å opprette ny dugnad */}
-			<TouchableOpacity
+			<Pressable
 				onPress={() => router.push("/(protected)/createDugnad")}
 				className="mb-4 bg-emerald-600 py-2 rounded-xl items-center"
 			>
 				<Text className="text-white font-semibold">Opprett ny dugnad</Text>
-			</TouchableOpacity>
+			</Pressable>
 
-			<FlatList
-				data={dugnader}
-				keyExtractor={(item) => item.id}
-				renderItem={renderItem}
-				contentContainerStyle={{ paddingBottom: 24 }}
-			/>
+			{filteredDugnader.length === 0 ? (
+				<Text className="text-gray-400 mt-2">
+					Ingen dugnader matcher søket ditt.
+				</Text>
+			) : (
+				<FlatList
+					data={filteredDugnader}
+					keyExtractor={(item) => item.id}
+					renderItem={renderItem}
+					contentContainerStyle={{ paddingBottom: 24 }}
+				/>
+			)}
 		</View>
 	);
 }

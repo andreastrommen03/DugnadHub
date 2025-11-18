@@ -198,7 +198,7 @@ export default function DugnadDetailsScreen() {
 
 					<View className="h-[1px] bg-[#166534] mb-3" />
 
-					<Text className="text-sm text-[#166534] mb-1">
+					<Text className="text-sm text-[#166534] mb-3">
 						Sted:{" "}
 						<Text className="font-semibold text-[#064E3B]">
 							{dugnad.location}
@@ -208,6 +208,13 @@ export default function DugnadDetailsScreen() {
 					<Text className="text-sm text-[#166534] mb-3">
 						Tidspunkt:{" "}
 						<Text className="font-semibold text-[#064E3B]">{dugnad.date}</Text>
+					</Text>
+
+					<Text className="text-sm text-[#166534] mb-3">
+						Nødvendige frivillige:{" "}
+						<Text className="font-semibold text-[#064E3B]">
+							{dugnad.maxVolunteers}
+						</Text>
 					</Text>
 
 					<Text className="text-sm text-[#166534]">

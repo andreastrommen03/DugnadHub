@@ -1,9 +1,23 @@
-// src/app/authentication.tsx
-
-import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+	View,
+	Text,
+	TextInput,
+	Pressable,
+	Alert,
+	Platform,
+	Image,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthSession } from "../providers/authctx";
+
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import * as AuthSession from "expo-auth-session";
+import Toast from "react-native-toast-message";
+import { signInWithGoogleCredential } from "../api/googleSignIn";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function AuthenticationScreen() {
 	const { signIn, signUp } = useAuthSession();
@@ -13,6 +27,28 @@ export default function AuthenticationScreen() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [username, setUsername] = useState("");
+
+	// 🔹 Google-klient-ID fra .env
+	const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+	if (!webClientId) {
+		console.warn("Mangler EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID i .env");
+	}
+
+	// 🔹 Redirect-URL
+	// Web → /redirect
+	// Native → Expo sin standard makeRedirectUri()
+	const redirectUri =
+		// @ts-ignore – Platform type kjenner ikke "web" i TS, men det funker i runtime
+		Platform.OS === "web"
+			? "http://127.0.0.1:8081/redirect"
+			: AuthSession.makeRedirectUri();
+
+	const [request, response, promptAsync] = Google.useAuthRequest({
+		clientId: webClientId!,
+		redirectUri,
+		responseType: "id_token",
+		scopes: ["openid", "profile", "email"],
+	});
 
 	const submit = async () => {
 		if (!email || !password || (mode === "register" && !username.trim())) {
@@ -38,6 +74,87 @@ export default function AuthenticationScreen() {
 		}
 	};
 
+	// 🔹 Google-login knapp
+	const handleGoogleLogin = async () => {
+		try {
+			if (!request) {
+				Alert.alert("Vent litt", "Google-innlogging er ikke klar ennå.");
+				return;
+			}
+
+			// Ingen useProxy her → vi bruker configen i redirectUri
+			await promptAsync();
+		} catch (e: any) {
+			Alert.alert("Feil", e?.message ?? "Kunne ikke starte Google-innlogging.");
+		}
+	};
+
+	useEffect(() => {
+		// 🌐 WEB: lytt på meldinger fra redirect-vinduet
+		if (Platform.OS === "web") {
+			const handleMessage = async (event: MessageEvent) => {
+				if (!event.data || typeof event.data !== "object") return;
+
+				const { type, idToken, error } = event.data as {
+					type?: string;
+					idToken?: string;
+					error?: string;
+				};
+
+				// 👈 viktig: samme type som du sender i redirect.tsx
+				if (type !== "GOOGLE_AUTH_SUCCESS") return;
+
+				if (error) {
+					Alert.alert("Google-innlogging feilet", error);
+					return;
+				}
+
+				if (idToken) {
+					try {
+						await signInWithGoogleCredential(idToken);
+						Toast.show({
+							type: "success",
+							text1: "Innlogging vellykket",
+						});
+						router.replace("/(protected)/(tabs)");
+					} catch (e: any) {
+						Alert.alert(
+							"Feil",
+							e?.message ?? "Kunne ikke logge inn med Google."
+						);
+					}
+				}
+			};
+
+			// @ts-ignore – TS kjenner ikke MessageEvent-typen her
+			window.addEventListener("message", handleMessage);
+			return () => {
+				// @ts-ignore
+				window.removeEventListener("message", handleMessage);
+			};
+		}
+
+		// 📱 NATIVE (iOS/Android): bruk response direkte
+		if (response?.type === "success") {
+			const idToken = (response as any).params?.id_token as string | undefined;
+
+			if (!idToken) return;
+
+			(async () => {
+				try {
+					await signInWithGoogleCredential(idToken);
+					Toast.show({
+						type: "success",
+						text1: "Innlogging vellykket",
+					});
+					router.replace("/(protected)/(tabs)");
+				} catch (e: any) {
+					Alert.alert("Feil", e?.message ?? "Kunne ikke logge inn med Google.");
+				}
+			})();
+		}
+	}, [response, router]);
+
 	return (
 		<View className="flex-1 bg-[#ECFDF3] justify-center px-6">
 			{/* Overskrift */}
@@ -49,7 +166,7 @@ export default function AuthenticationScreen() {
 			<View
 				style={{
 					width: "100%",
-					maxWidth: 380, // 🎯 Perfekt smalt og midtstilt
+					maxWidth: 380,
 					alignSelf: "center",
 				}}
 			>
@@ -62,7 +179,6 @@ export default function AuthenticationScreen() {
 							value={username}
 							onChangeText={setUsername}
 							autoCapitalize="none"
-							keyboardType="email-address"
 							placeholder="Ola Normann"
 							placeholderTextColor="#6B7280"
 						/>
@@ -82,7 +198,7 @@ export default function AuthenticationScreen() {
 				/>
 
 				{/* Passord */}
-				<Text className="text-[#f4fbf7] mb-1">Passord</Text>
+				<Text className="text-[#064E3B] mb-1">Passord</Text>
 				<TextInput
 					className="bg-[#F0FDF4] rounded-xl px-4 py-3 mb-6 border border-[#064E3B]"
 					secureTextEntry
@@ -102,6 +218,27 @@ export default function AuthenticationScreen() {
 				>
 					<Text className="text-white font-semibold text-base">
 						{mode === "login" ? "Logg inn" : "Registrer meg"}
+					</Text>
+				</Pressable>
+
+				{/* Separator */}
+				<View className="flex-row items-center my-4">
+					<View className="flex-1 h-[1px] bg-[#BBF7D0]" />
+					<Text className="mx-3 text-[#166534] font-medium">eller</Text>
+					<View className="flex-1 h-[1px] bg-[#BBF7D0]" />
+				</View>
+
+				{/* Google login button */}
+				<Pressable
+					onPress={handleGoogleLogin}
+					className="flex-row items-center justify-center bg-white border border-[#064E3B] py-3 rounded-full mb-3"
+				>
+					<Image
+						source={require("../assets/google-logo.png")}
+						style={{ width: 20, height: 20, marginRight: 10 }}
+					/>
+					<Text className="text-[#064E3B] font-semibold">
+						Logg inn med Google
 					</Text>
 				</Pressable>
 

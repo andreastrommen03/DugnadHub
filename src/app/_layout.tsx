@@ -3,13 +3,18 @@ import React from "react";
 import { Slot } from "expo-router";
 import "../global.css";
 
-import "../global.css"; // tailwind (kan stå, selv om det bare trengs for web)
 import { AuthProvider } from "../providers/authctx";
+import Toast from "react-native-toast-message";
 
 export default function RootLayout() {
 	return (
 		<AuthProvider>
-			<Slot />
+			<>
+				<Slot />
+
+				{/* 👇 Toast MÅ ligge nederst i layouten */}
+				<Toast />
+			</>
 		</AuthProvider>
 	);
 }

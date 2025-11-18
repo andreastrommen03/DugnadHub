@@ -43,7 +43,7 @@ export default function DugnadDetailsScreen() {
 		load();
 	}, [id]);
 
-	// 🔹 Påmelding / avmelding (BEHOLDT AKKURAT SOM DU HADDE)
+	// 🔹 Påmelding / avmelding (samme logikk som før)
 	const handleToggleJoin = async () => {
 		if (!dugnad || !userId) return;
 
@@ -80,7 +80,7 @@ export default function DugnadDetailsScreen() {
 		}
 	};
 
-	// 🔹 Favoritt (ny – i samme stil som likes hos Yuan)
+	// 🔹 Favoritt (samme stil som likes hos Yuan)
 	const handleToggleFavorite = async () => {
 		if (!dugnad || !favUserId) return;
 
@@ -103,20 +103,20 @@ export default function DugnadDetailsScreen() {
 
 	if (loading) {
 		return (
-			<View className="flex-1 bg-[#20202A] justify-center items-center">
+			<View className="flex-1 bg-[#ECFDF3] justify-center items-center">
 				<ActivityIndicator />
-				<Text className="text-white mt-2">Laster dugnad...</Text>
+				<Text className="text-[#064E3B] mt-2">Laster dugnad...</Text>
 			</View>
 		);
 	}
 
 	if (!dugnad) {
 		return (
-			<View className="flex-1 bg-[#20202A] items-center justify-center px-4">
-				<Text className="text-white text-lg font-semibold mb-2">
+			<View className="flex-1 bg-[#ECFDF3] items-center justify-center px-4">
+				<Text className="text-[#064E3B] text-lg font-semibold mb-2">
 					Fant ikke dugnaden
 				</Text>
-				<Text className="text-gray-300 text-sm">ID: {id}</Text>
+				<Text className="text-[#166534] text-sm">ID: {id}</Text>
 			</View>
 		);
 	}
@@ -129,11 +129,14 @@ export default function DugnadDetailsScreen() {
 	const isFavorite = favList.includes(favUserId);
 
 	return (
-		<View className="flex-1 bg-[#20202A]">
-			{/* Header-tittel (som Yuan gjør) */}
+		<View className="flex-1 bg-[#ECFDF3]">
+			{/* Header-tittel med grønn styling */}
 			<Stack.Screen
 				options={{
-					headerTitle: dugnad.title ?? "Dugnad",
+					title: dugnad?.title ?? "Dugnad",
+					headerStyle: { backgroundColor: "#064E3B" },
+					headerTintColor: "#D9F2E3",
+					headerTitleStyle: { color: "#D9F2E3" },
 				}}
 			/>
 
@@ -163,11 +166,11 @@ export default function DugnadDetailsScreen() {
 					/>
 				) : null}
 
-				{/* Kort med innhold */}
-				<View className="bg-white rounded-2xl p-5 mb-6">
+				{/* Kort med innhold – nå i samme grønne stil som kortene dine */}
+				<View className="bg-[#f4fbf7] rounded-2xl p-5 mb-6 border border-[#166534]">
 					{/* Tittel + favoritt-hjerte på én rad */}
-					<View className="flex-row items-center justify-between mb-2">
-						<Text className="text-2xl font-bold text-gray-900 flex-1 pr-4">
+					<View className="flex-row items-center justify-between mb-3">
+						<Text className="text-2xl font-bold text-[#064E3B] flex-1 pr-4">
 							{dugnad.title}
 						</Text>
 						<Pressable
@@ -183,31 +186,31 @@ export default function DugnadDetailsScreen() {
 					</View>
 
 					{/* Kategori-pill */}
-					<View className="self-start bg-orange-100 px-3 py-1 rounded-full mb-3">
-						<Text className="text-xs font-semibold text-orange-700 uppercase">
+					<View className="self-start bg-[#D9F2E3] px-3 py-1 rounded-full mb-3">
+						<Text className="text-xs font-semibold text-[#064E3B] uppercase">
 							{dugnad.category ?? "Ukjent kategori"}
 						</Text>
 					</View>
 
-					<Text className="text-base text-gray-700 mb-4">
+					<Text className="text-base text-[#166534] mb-4">
 						{dugnad.description}
 					</Text>
 
-					<View className="h-[1px] bg-gray-200 mb-3" />
+					<View className="h-[1px] bg-[#166534] mb-3" />
 
-					<Text className="text-sm text-gray-600 mb-1">
+					<Text className="text-sm text-[#166534] mb-1">
 						Sted:{" "}
-						<Text className="font-semibold text-gray-800">
+						<Text className="font-semibold text-[#064E3B]">
 							{dugnad.location}
 						</Text>
 					</Text>
 
-					<Text className="text-sm text-gray-600 mb-3">
+					<Text className="text-sm text-[#166534] mb-3">
 						Tidspunkt:{" "}
-						<Text className="font-semibold text-gray-800">{dugnad.date}</Text>
+						<Text className="font-semibold text-[#064E3B]">{dugnad.date}</Text>
 					</Text>
 
-					<Text className="text-sm text-gray-700">
+					<Text className="text-sm text-[#166534]">
 						Påmeldte:{" "}
 						<Text className="font-semibold">
 							{dugnad.currentVolunteers}/{dugnad.maxVolunteers}
@@ -215,20 +218,20 @@ export default function DugnadDetailsScreen() {
 					</Text>
 				</View>
 
-				{/* 🔹 Deltakerliste (BEHOLDT) */}
-				<View className="bg-[#111827] rounded-2xl p-4 mb-8">
-					<Text className="text-white text-lg font-semibold mb-2">
+				{/* 🔹 Deltakerliste – gjort lys og grønn */}
+				<View className="bg-[#F0FDF4] rounded-2xl p-4 mb-8 border border-[#166534]">
+					<Text className="text-[#064E3B] text-lg font-semibold mb-2">
 						Deltakere
 					</Text>
 
 					{participants.length === 0 ? (
-						<Text className="text-gray-400 text-sm">
+						<Text className="text-[#166534] text-sm">
 							Ingen er påmeldt enda. Vær den første som melder deg på!
 						</Text>
 					) : (
 						<View className="space-y-1">
 							{participants.map((p, index) => (
-								<Text key={`${p}-${index}`} className="text-gray-200 text-sm">
+								<Text key={`${p}-${index}`} className="text-[#166534] text-sm">
 									• {p}
 								</Text>
 							))}
@@ -236,19 +239,21 @@ export default function DugnadDetailsScreen() {
 					)}
 				</View>
 
-				{/* Påmeldingsknapp (BEHOLDT) */}
+				{/* Påmeldingsknapp – samme funksjon, grønn stil */}
 				<View className="mb-10">
 					{isFull && !alreadyJoined ? (
-						<View className="bg-gray-600 py-3 rounded-xl items-center">
+						<View className="py-3 rounded-xl items-center bg-[#9CA3AF]">
 							<Text className="text-white font-semibold">Dugnaden er full</Text>
 						</View>
 					) : (
 						<Pressable
 							onPress={handleToggleJoin}
 							disabled={isUpdating}
-							className={`py-3 rounded-xl items-center ${
-								alreadyJoined ? "bg-red-600" : "bg-emerald-600"
-							}`}
+							className="py-3 rounded-xl items-center"
+							style={{
+								backgroundColor: alreadyJoined ? "#B91C1C" : "#064E3B",
+								opacity: isUpdating ? 0.8 : 1,
+							}}
 						>
 							<Text className="text-white font-semibold text-lg">
 								{alreadyJoined ? "Meld meg av" : "Meld meg på dugnaden"}

@@ -13,9 +13,7 @@ export default function ProfilePage() {
 	const router = useRouter();
 	const { user } = useAuthSession();
 
-	// 🔹 ID for påmeldinger (samme som du brukte før)
 	const userIdForParticipants = user?.email ?? user?.uid ?? "Ukjent";
-	// 🔹 ID for favoritter (samme logikk som i detaljsiden / forsiden)
 	const favUserId = user?.uid ?? user?.email ?? "Ukjent";
 
 	const [allDugnads, setAllDugnads] = useState<DugnadData[]>([]);
@@ -35,19 +33,16 @@ export default function ProfilePage() {
 		}
 	}, [userIdForParticipants]);
 
-	// Hent på nytt hver gang profilsiden får fokus
 	useFocusEffect(
 		useCallback(() => {
 			loadMyDugnads();
 		}, [loadMyDugnads])
 	);
 
-	// 🔹 Mine påmeldte dugnader
 	const myDugnads = allDugnads.filter((d) =>
 		d.participants?.includes(userIdForParticipants)
 	);
 
-	// 🔹 Mine favoritter
 	const favoriteDugnads = allDugnads.filter((d) =>
 		(d.favoritedBy ?? []).includes(favUserId)
 	);
@@ -61,7 +56,6 @@ export default function ProfilePage() {
 			? current.filter((u) => u !== favUserId)
 			: [...current, favUserId];
 
-		// Oppdater lokalt UI
 		setAllDugnads((prev) =>
 			prev.map((d) => (d.id === dugnad.id ? { ...d, favoritedBy: updated } : d))
 		);
@@ -81,8 +75,8 @@ export default function ProfilePage() {
 		);
 	}
 
-	// 📏 Samme kortbredde-oppsett som på forsiden
-	const cardWidth = Platform.OS === "web" ? "30%" : "46%";
+	// 🔥 LITT MINDRE CARDS KUN PÅ PROFIL
+	const cardWidth = Platform.OS === "web" ? "18%" : "30%";
 
 	return (
 		<ScrollView
@@ -90,7 +84,6 @@ export default function ProfilePage() {
 			contentContainerStyle={{ paddingBottom: 40 }}
 		>
 			<View className="px-4 pt-10">
-				{/* Toppseksjon: brukerinfo */}
 				<Text className="text-[#064E3B] text-3xl font-bold mb-2">
 					Min profil
 				</Text>
@@ -111,23 +104,21 @@ export default function ProfilePage() {
 					{favoriteDugnads.length === 1 ? "" : "er"}.
 				</Text>
 
-				{/* Divider */}
 				<View className="h-[1px] bg-[#BBF7D0] mb-6" />
 
-				{/* 🔹 Mine dugnader (påmeldte) */}
+				{/* 🔹 MINE DUGNADER */}
 				<Text className="text-[#064E3B] text-2xl font-semibold mb-3">
-					Mine dugnader
+					Mine påmeldte dugnader
 				</Text>
 
 				{myDugnads.length === 0 ? (
 					<Text className="text-[#166534] mb-10 text-sm">
-						Du er ikke påmeldt noen dugnader enda. Finn en dugnad under
-						“Dugnader”-fanen og meld deg på.
+						Du er ikke påmeldt noen dugnader enda.
 					</Text>
 				) : (
 					<View style={{ marginBottom: 16 }}>
 						<View style={{ width: "100%", maxWidth: 1000 }}>
-							<View className="flex-row flex-wrap justify-between px-2">
+							<View className="flex-row flex-wrap justify-start px-2">
 								{myDugnads.map((item) => {
 									const isFavorite =
 										item.favoritedBy?.includes(favUserId) ?? false;
@@ -137,7 +128,8 @@ export default function ProfilePage() {
 											key={item.id}
 											style={{
 												width: cardWidth,
-												marginBottom: 24,
+												marginBottom: 16,
+												marginRight: 8,
 											}}
 										>
 											<DugnadCard
@@ -156,29 +148,28 @@ export default function ProfilePage() {
 					</View>
 				)}
 
-				{/* Divider */}
 				<View className="h-[1px] bg-[#BBF7D0] my-6" />
 
-				{/* 🔹 Mine favoritter */}
+				{/* 🔹 FAVORITTER */}
 				<Text className="text-[#064E3B] text-2xl font-semibold mb-3">
 					Mine favoritt-dugnader
 				</Text>
 
 				{favoriteDugnads.length === 0 ? (
 					<Text className="text-[#166534] text-sm mb-10">
-						Du har ingen favoritter enda. Trykk på hjertet på en dugnad for å
-						lagre den her.
+						Du har ingen favoritter enda.
 					</Text>
 				) : (
 					<View>
 						<View style={{ width: "100%", maxWidth: 1000 }}>
-							<View className="flex-row flex-wrap justify-between px-2">
+							<View className="flex-row flex-wrap justify-start px-2">
 								{favoriteDugnads.map((item) => (
 									<View
 										key={item.id}
 										style={{
 											width: cardWidth,
-											marginBottom: 24,
+											marginBottom: 16,
+											marginRight: 8,
 										}}
 									>
 										<DugnadCard

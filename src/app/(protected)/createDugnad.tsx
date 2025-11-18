@@ -27,12 +27,9 @@ export default function CreateDugnadScreen() {
 	const [maxVolunteers, setMaxVolunteers] = useState("");
 	const [category, setCategory] = useState("");
 
-	// Lokale URIs fra ImagePicker – sendes til createDugnad,
-	// som igjen kaller uploadImageToFirebase (Yuan-stil)
 	const [localImages, setLocalImages] = useState<string[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	// 📌 Velg bilder fra galleri (samme mønster som Yuan)
 	const pickFromLibrary = async () => {
 		const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
 		if (!perm.granted) {
@@ -56,7 +53,6 @@ export default function CreateDugnadScreen() {
 		}
 	};
 
-	// 📌 Ta bilde med kamera
 	const pickFromCamera = async () => {
 		const perm = await ImagePicker.requestCameraPermissionsAsync();
 		if (!perm.granted) {
@@ -76,7 +72,6 @@ export default function CreateDugnadScreen() {
 		}
 	};
 
-	// 📌 Opprett dugnad – selve bilde-opplastingen skjer i dugnadApi.createDugnad
 	const handleCreate = async () => {
 		if (!title.trim() || !description.trim() || !location.trim()) {
 			Alert.alert(
@@ -105,7 +100,7 @@ export default function CreateDugnadScreen() {
 				date: date.trim(),
 				maxVolunteers: max,
 				category: category.trim() || "Ukjent",
-				images: localImages, // 👈 rå URIs – createDugnad laster dem opp
+				images: localImages,
 			});
 
 			router.replace("/(protected)/(tabs)");
@@ -121,10 +116,13 @@ export default function CreateDugnadScreen() {
 	};
 
 	return (
-		<View className="flex-1 bg-[#20202A]">
+		<View className="flex-1 bg-[#ECFDF3]">
 			<Stack.Screen
 				options={{
 					title: "Ny dugnad",
+					headerStyle: { backgroundColor: "#064E3B" }, // grønn toppbar
+					headerTintColor: "#D9F2E3", // grønt ikon + tekst
+					headerTitleStyle: { color: "#D9F2E3" }, // tittel
 				}}
 			/>
 
@@ -136,89 +134,89 @@ export default function CreateDugnadScreen() {
 					contentContainerClassName="px-4 pt-6 pb-10"
 					keyboardShouldPersistTaps="handled"
 				>
-					<Text className="text-white text-2xl font-bold mb-4">
+					<Text className="text-[#064E3B] text-2xl font-bold mb-4">
 						Opprett en ny dugnad
 					</Text>
 
 					{/* Tittel */}
 					<View className="mb-4">
-						<Text className="text-gray-200 mb-1">Tittel</Text>
+						<Text className="text-[#064E3B] mb-1">Tittel</Text>
 						<TextInput
 							value={title}
 							onChangeText={setTitle}
 							placeholder="F.eks. Loppemarked for idrettslaget"
-							placeholderTextColor="#9CA3AF"
-							className="bg-[#111827] text-white px-3 py-2 rounded-lg border border-gray-700"
+							placeholderTextColor="#6B7280"
+							className="bg-[#f4fbf7] text-[#064E3B] px-3 py-2 rounded-lg border border-[#064E3B]"
 						/>
 					</View>
 
 					{/* Beskrivelse */}
 					<View className="mb-4">
-						<Text className="text-gray-200 mb-1">Beskrivelse</Text>
+						<Text className="text-[#064E3B] mb-1">Beskrivelse</Text>
 						<TextInput
 							value={description}
 							onChangeText={setDescription}
 							placeholder="Hva skal gjøres på dugnaden?"
-							placeholderTextColor="#9CA3AF"
+							placeholderTextColor="#6B7280"
 							multiline
 							numberOfLines={4}
 							textAlignVertical="top"
-							className="bg-[#111827] text-white px-3 py-2 rounded-lg border border-gray-700"
+							className="bg-[#f4fbf7] text-[#064E3B] px-3 py-2 rounded-lg border border-[#064E3B]"
 						/>
 					</View>
 
 					{/* Kategori */}
 					<View className="mb-4">
-						<Text className="text-gray-200 mb-1">Kategori</Text>
+						<Text className="text-[#064E3B] mb-1">Kategori</Text>
 						<TextInput
 							value={category}
 							onChangeText={setCategory}
-							placeholder="F.eks. Nabolag, Miljø, Idrett..."
-							placeholderTextColor="#9CA3AF"
-							className="bg-[#111827] text-white px-3 py-2 rounded-lg border border-gray-700"
+							placeholder="F.eks. Nabolag"
+							placeholderTextColor="#6B7280"
+							className="bg-[#f4fbf7] text-[#064E3B] px-3 py-2 rounded-lg border border-[#064E3B]"
 						/>
 					</View>
 
 					{/* Sted */}
 					<View className="mb-4">
-						<Text className="text-gray-200 mb-1">Sted</Text>
+						<Text className="text-[#064E3B] mb-1">Sted</Text>
 						<TextInput
 							value={location}
 							onChangeText={setLocation}
 							placeholder="Hvor skjer dugnaden?"
-							placeholderTextColor="#9CA3AF"
-							className="bg-[#111827] text-white px-3 py-2 rounded-lg border border-gray-700"
+							placeholderTextColor="#6B7280"
+							className="bg-[#f4fbf7] text-[#064E3B] px-3 py-2 rounded-lg border border-[#064E3B]"
 						/>
 					</View>
 
 					{/* Dato */}
 					<View className="mb-4">
-						<Text className="text-gray-200 mb-1">Dato og tidspunkt</Text>
+						<Text className="text-[#064E3B] mb-1">Dato og tidspunkt</Text>
 						<TextInput
 							value={date}
 							onChangeText={setDate}
 							placeholder="F.eks. 23. november 2025, 11:00"
-							placeholderTextColor="#9CA3AF"
-							className="bg-[#111827] text-white px-3 py-2 rounded-lg border border-gray-700"
+							placeholderTextColor="#6B7280"
+							className="bg-[#f4fbf7] text-[#064E3B] px-3 py-2 rounded-lg border border-[#064E3B]"
 						/>
 					</View>
 
 					{/* Maks frivillige */}
 					<View className="mb-6">
-						<Text className="text-gray-200 mb-1">Maks antall frivillige</Text>
+						<Text className="text-[#064E3B] mb-1">Maks antall frivillige</Text>
 						<TextInput
 							value={maxVolunteers}
 							onChangeText={setMaxVolunteers}
 							placeholder="F.eks. 10"
-							placeholderTextColor="#9CA3AF"
+							placeholderTextColor="#6B7280"
 							keyboardType="number-pad"
-							className="bg-[#111827] text-white px-3 py-2 rounded-lg border border-gray-700"
+							className="bg-[#f4fbf7] text-[#064E3B] px-3 py-2 rounded-lg border border-[#064E3B]"
 						/>
 					</View>
 
 					{/* Bilder */}
 					<View className="mb-6">
-						<Text className="text-gray-200 mb-2">Bilder (valgfritt)</Text>
+						<Text className="text-[#064E3B] mb-2">Bilder (valgfritt)</Text>
 
 						{localImages.length > 0 ? (
 							<ScrollView
@@ -236,7 +234,7 @@ export default function CreateDugnadScreen() {
 								))}
 							</ScrollView>
 						) : (
-							<Text className="text-gray-400 mb-3 text-sm">
+							<Text className="text-[#166534] mb-3 text-sm">
 								Du har ikke valgt noen bilder ennå.
 							</Text>
 						)}
@@ -244,7 +242,8 @@ export default function CreateDugnadScreen() {
 						<View className="flex-row gap-3">
 							<Pressable
 								onPress={pickFromLibrary}
-								className="flex-1 bg-sky-600 py-2 rounded-xl items-center"
+								className="flex-1 py-2 rounded-xl items-center"
+								style={{ backgroundColor: "#064E3B" }}
 							>
 								<Text className="text-white font-semibold text-sm">
 									Velg fra galleri
@@ -253,7 +252,8 @@ export default function CreateDugnadScreen() {
 
 							<Pressable
 								onPress={pickFromCamera}
-								className="flex-1 bg-indigo-600 py-2 rounded-xl items-center"
+								className="flex-1 py-2 rounded-xl items-center"
+								style={{ backgroundColor: "#064E3B" }}
 							>
 								<Text className="text-white font-semibold text-sm">
 									Ta bilde
@@ -266,12 +266,13 @@ export default function CreateDugnadScreen() {
 					<Pressable
 						onPress={handleCreate}
 						disabled={isSubmitting}
-						className={`py-3 rounded-xl items-center ${
-							isSubmitting ? "bg-gray-500" : "bg-emerald-600"
-						}`}
+						className="py-3 rounded-xl items-center"
+						style={{
+							backgroundColor: isSubmitting ? "#9CA3AF" : "#064E3B",
+						}}
 					>
 						{isSubmitting ? (
-							<ActivityIndicator color="#fff" />
+							<ActivityIndicator color="#ffffff" />
 						) : (
 							<Text className="text-white font-semibold text-lg">
 								Opprett dugnad

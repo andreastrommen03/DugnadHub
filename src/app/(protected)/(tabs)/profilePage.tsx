@@ -1,7 +1,7 @@
 // src/app/(protected)/(tabs)/profilePage.tsx
 
 import React, { useState, useCallback } from "react";
-import { View, Text, ScrollView, Platform } from "react-native";
+import { View, Text, ScrollView, Platform, Pressable } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 
 import { useAuthSession } from "../../../providers/authctx";
@@ -11,7 +11,7 @@ import DugnadCard from "../../../components/DugnadCard";
 
 export default function ProfilePage() {
 	const router = useRouter();
-	const { user } = useAuthSession();
+	const { user, signOut } = useAuthSession();
 
 	const userIdForParticipants = user?.email ?? user?.uid ?? "Ukjent";
 	const favUserId = user?.uid ?? user?.email ?? "Ukjent";
@@ -104,7 +104,7 @@ export default function ProfilePage() {
 					{favoriteDugnads.length === 1 ? "" : "er"}.
 				</Text>
 
-				<View className="h-[1px] bg-[#BBF7D0] mb-6" />
+				<View className="h-[1px] bg-[#064E3B] mb-6" />
 
 				{/* 🔹 MINE DUGNADER */}
 				<Text className="text-[#064E3B] text-2xl font-semibold mb-3">
@@ -148,7 +148,7 @@ export default function ProfilePage() {
 					</View>
 				)}
 
-				<View className="h-[1px] bg-[#BBF7D0] my-6" />
+				<View className="h-[1px] bg-[#064E3B] my-6" />
 
 				{/* 🔹 FAVORITTER */}
 				<Text className="text-[#064E3B] text-2xl font-semibold mb-3">
@@ -186,6 +186,24 @@ export default function ProfilePage() {
 						</View>
 					</View>
 				)}
+
+				{/* 🔻 Logg ut-knapp */}
+
+				<View className="mt-8 mb-6 items-center">
+					<Pressable
+						onPress={async () => {
+							await signOut();
+							router.replace("/authentication");
+						}}
+						className="px-6 py-2 rounded-full"
+						style={{
+							backgroundColor: "#DC6E6E", // dus rød
+							alignSelf: "center", // midtstilt
+						}}
+					>
+						<Text className="text-white font-semibold text-base">Logg ut</Text>
+					</Pressable>
+				</View>
 			</View>
 		</ScrollView>
 	);

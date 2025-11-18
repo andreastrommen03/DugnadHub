@@ -94,7 +94,10 @@ export default function ProfilePage() {
 			<Text className="text-gray-300 mb-4">
 				Du er påmeldt <Text className="font-semibold">{myDugnads.length}</Text>{" "}
 				dugnad
-				{myDugnads.length === 1 ? "" : "er"}.
+				{myDugnads.length === 1 ? "" : "er"} og har{" "}
+				<Text className="font-semibold">{favoriteDugnads.length}</Text>{" "}
+				favoritt-dugnader.
+				{favoriteDugnads.length === 1 ? "" : "er"}
 			</Text>
 
 			{/* Divider */}

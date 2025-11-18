@@ -72,6 +72,7 @@ export async function getDugnadById(id: string): Promise<DugnadData | null> {
 			imageUrl: imageUrls[0] ?? null,
 			imageUrls,
 			participants: data.participants ?? [],
+			favoritedBy: data.favoritedBy ?? [],
 		};
 	} catch (error) {
 		console.error("❌ Feil ved henting av dugnad:", error);
@@ -88,7 +89,7 @@ export async function updateDugnad(
 		const ref = doc(db, "dugnader", id);
 		await updateDoc(ref, data);
 	} catch (error) {
-		console.error("❌ Feil ved oppdatering av dugnad:", error);
+		console.error("Feil ved oppdatering av dugnad:", error);
 		throw error;
 	}
 }

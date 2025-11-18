@@ -13,6 +13,9 @@ export default function DugnaderHomeScreen() {
 	const router = useRouter();
 	const { user } = useAuthSession();
 
+	// 🔹 bruker-ID som brukes til favoritter (SAME overalt!)
+	const favUserId = user?.uid ?? user?.email ?? "Ukjent";
+
 	const [dugnader, setDugnader] = useState<DugnadData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState("");
@@ -48,14 +51,13 @@ export default function DugnaderHomeScreen() {
 	}, [search, dugnader]);
 
 	const handleToggleFavorite = async (dugnad: DugnadData) => {
-		if (!user) return; // sikkerhetsnett, skal egentlig alltid være logget inn her
+		if (!favUserId) return;
 
-		const uid = user.uid;
 		const current = dugnad.favoritedBy ?? [];
-		const isFav = current.includes(uid);
-		const updated = isFav
-			? current.filter((x) => x !== uid)
-			: [...current, uid];
+		const alreadyFav = current.includes(favUserId);
+		const updated = alreadyFav
+			? current.filter((x) => x !== favUserId)
+			: [...current, favUserId];
 
 		// Oppdater UI med en gang (optimistisk)
 		setDugnader((prev) =>
@@ -66,7 +68,7 @@ export default function DugnaderHomeScreen() {
 			await updateDugnad(dugnad.id, { favoritedBy: updated });
 		} catch (error) {
 			console.error("❌ Feil ved oppdatering av favoritt:", error);
-			// evt. rulle tilbake, men ikke nødvendig til eksamen
+			// vi lar UI være, det er godt nok til eksamen
 		}
 	};
 
@@ -79,8 +81,7 @@ export default function DugnaderHomeScreen() {
 	}
 
 	const renderItem = ({ item }: { item: DugnadData }) => {
-		const uid = user?.uid ?? "";
-		const isFavorite = item.favoritedBy?.includes(uid) ?? false;
+		const isFavorite = item.favoritedBy?.includes(favUserId) ?? false;
 
 		return (
 			<DugnadCard

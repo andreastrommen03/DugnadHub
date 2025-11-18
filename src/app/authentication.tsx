@@ -76,14 +76,19 @@ export default function AuthenticationScreen() {
 
 	// 🔹 Google-login knapp
 	const handleGoogleLogin = async () => {
-		try {
-			if (!request) {
-				Alert.alert("Vent litt", "Google-innlogging er ikke klar ennå.");
-				return;
-			}
+		if (!request) {
+			Alert.alert(
+				"Google-innlogging",
+				"Kan ikke starte Google-innlogging ennå."
+			);
+			return;
+		}
 
-			// Ingen useProxy her → vi bruker configen i redirectUri
+		try {
 			await promptAsync();
+			// På web vil du nå havne på /redirect,
+			// og der tar redirect.tsx over.
+			// På native kommer vi tilbake i `response` under her.
 		} catch (e: any) {
 			Alert.alert("Feil", e?.message ?? "Kunne ikke starte Google-innlogging.");
 		}

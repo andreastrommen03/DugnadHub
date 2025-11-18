@@ -83,7 +83,7 @@ export default function ProfilePage() {
 			className="flex-1 bg-[#ECFDF3]"
 			contentContainerStyle={{ paddingBottom: 40 }}
 		>
-			<View className="px-4 pt-10">
+			<View className="px-4 pt-20">
 				<Text className="text-[#064E3B] text-3xl font-bold mb-2">
 					Min profil
 				</Text>

@@ -1,7 +1,14 @@
 // src/app/(protected)/(tabs)/index.tsx
 
 import React, { useState, useCallback, useMemo } from "react";
-import { View, Text, FlatList, Pressable, TextInput } from "react-native";
+import {
+	View,
+	Text,
+	Pressable,
+	TextInput,
+	ScrollView,
+	Platform,
+} from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 
 import DugnadCard from "../../../components/DugnadCard";
@@ -13,7 +20,6 @@ export default function DugnaderHomeScreen() {
 	const router = useRouter();
 	const { user } = useAuthSession();
 
-	// 🔹 bruker-ID som brukes til favoritter (SAME overalt!)
 	const favUserId = user?.uid ?? user?.email ?? "Ukjent";
 
 	const [dugnader, setDugnader] = useState<DugnadData[]>([]);
@@ -38,7 +44,7 @@ export default function DugnaderHomeScreen() {
 		}, [loadDugnader])
 	);
 
-	// 🔍 Live-filtering på tittel + kategori
+	// 🔍 Live-filter på tittel + kategori
 	const filteredDugnader = useMemo(() => {
 		const q = search.trim().toLowerCase();
 		if (!q) return dugnader;
@@ -50,6 +56,7 @@ export default function DugnaderHomeScreen() {
 		});
 	}, [search, dugnader]);
 
+	// ❤️ Favoritter
 	const handleToggleFavorite = async (dugnad: DugnadData) => {
 		if (!favUserId) return;
 
@@ -59,7 +66,6 @@ export default function DugnaderHomeScreen() {
 			? current.filter((x) => x !== favUserId)
 			: [...current, favUserId];
 
-		// Oppdater UI med en gang (optimistisk)
 		setDugnader((prev) =>
 			prev.map((d) => (d.id === dugnad.id ? { ...d, favoritedBy: updated } : d))
 		);
@@ -68,72 +74,120 @@ export default function DugnaderHomeScreen() {
 			await updateDugnad(dugnad.id, { favoritedBy: updated });
 		} catch (error) {
 			console.error("❌ Feil ved oppdatering av favoritt:", error);
-			// vi lar UI være, det er godt nok til eksamen
 		}
 	};
 
 	if (loading) {
 		return (
-			<View className="flex-1 bg-[#20202A] items-center justify-center">
-				<Text className="text-white">Laster dugnader...</Text>
+			<View className="flex-1 bg-[#E5F4EC] items-center justify-center">
+				<Text className="text-[#064E3B]">Laster dugnader...</Text>
 			</View>
 		);
 	}
 
-	const renderItem = ({ item }: { item: DugnadData }) => {
-		const isFavorite = item.favoritedBy?.includes(favUserId) ?? false;
-
-		return (
-			<DugnadCard
-				dugnad={item}
-				onPress={() => router.push(`/(protected)/dugnadDetails/${item.id}`)}
-				isFavorite={isFavorite}
-				onToggleFavorite={() => handleToggleFavorite(item)}
-			/>
-		);
-	};
+	// 📏 kortbredde: 3 per rad på web, 2 per rad på mobil
+	const cardWidth = Platform.OS === "web" ? "30%" : "46%";
 
 	return (
-		<View className="flex-1 bg-[#20202A] px-4 pt-10">
-			<Text className="text-white text-3xl font-bold mb-2">
-				Kommende dugnader
-			</Text>
+		<ScrollView
+			className="flex-1 bg-[#E5F4EC]"
+			contentContainerStyle={{ paddingBottom: 40 }}
+		>
+			{/* 🟣 HERO / VELKOMST */}
+			<View className="px-6 pt-16 pb-48 items-center">
+				<View
+					style={{
+						maxWidth: 800,
+					}}
+					className="bg-[#D9F2E3] rounded-3xl border border-[#166534] px-6 py-10"
+				>
+					<Text className="text-[#064E3B] text-4xl font-bold mb-4 text-center">
+						DugnadHub
+					</Text>
 
-			<Text className="text-gray-300 mb-3 text-sm">
-				Finn en dugnad du vil bidra på i nærheten.
-			</Text>
+					<Text className="text-[#14532D] text-base leading-6 text-center">
+						Velkommen til DugnadHub — stedet hvor du enkelt kan finne, opprette
+						og delta på dugnader i nærmiljøet ditt.
+						{"\n\n"}
+						Få oversikt over lokale initiativer, bli kjent med nye mennesker og
+						bidra til et bedre nærmiljø – alt samlet på ett sted.
+					</Text>
+				</View>
+			</View>
 
-			{/* 🔍 Søkefelt */}
-			<View className="mb-4">
+			{/* 🟠 SEKSJON: KOMMENDE DUGNADER */}
+			<View className="px-8 mb-2">
+				<Text className="text-[#064E3B] text-3xl font-semibold mb-4 text-center">
+					Kommende dugnader
+				</Text>
+				<Text className="text-[#14532D] text-sm mb-8 text-center">
+					Bla gjennom dugnader som skjer i nærheten av deg.
+				</Text>
+			</View>
+
+			{/* 🟪 Søk + Opprett dugnad – smalt og midtstilt */}
+			<View
+				style={{
+					width: "100%",
+					maxWidth: 400,
+					alignSelf: "center",
+				}}
+			>
+				{/* Søk */}
 				<TextInput
 					value={search}
 					onChangeText={setSearch}
 					placeholder="Søk på tittel eller kategori..."
-					placeholderTextColor="#9CA3AF"
-					className="bg-[#111827] text-white px-4 py-2 rounded-xl border border-gray-700"
+					placeholderTextColor="#6B7280"
+					className="bg-[#f4fbf7] text-[#064E3B] px-4 py-2 rounded-xl border border-[#064E3B] mb-4"
+					style={{ width: "100%" }}
 				/>
+
+				{/* Opprett dugnad */}
+				<Pressable
+					onPress={() => router.push("/(protected)/createDugnad")}
+					className="py-2 rounded-xl items-center"
+					style={{
+						width: "100%",
+						marginBottom: 24,
+						backgroundColor: "#064E3B",
+					}}
+				>
+					<Text className="text-[#f4fbf7] font-semibold">
+						Opprett ny dugnad
+					</Text>
+				</Pressable>
 			</View>
 
-			{/* 🔹 Knapp for å opprette ny dugnad */}
-			<Pressable
-				onPress={() => router.push("/(protected)/createDugnad")}
-				className="mb-4 bg-emerald-600 py-2 rounded-xl items-center"
-			>
-				<Text className="text-white font-semibold">Opprett ny dugnad</Text>
-			</Pressable>
+			{/* 🟢 GRID */}
+			<View style={{ alignItems: "center" }}>
+				<View style={{ width: "100%", maxWidth: 1000 }}>
+					<View className="flex-row flex-wrap justify-between px-4">
+						{filteredDugnader.map((item) => {
+							const isFavorite = item.favoritedBy?.includes(favUserId) ?? false;
 
-			{filteredDugnader.length === 0 ? (
-				<Text className="text-gray-400 mt-2">
-					Ingen dugnader matcher søket ditt.
-				</Text>
-			) : (
-				<FlatList
-					data={filteredDugnader}
-					keyExtractor={(item) => item.id}
-					renderItem={renderItem}
-					contentContainerStyle={{ paddingBottom: 24 }}
-				/>
-			)}
-		</View>
+							return (
+								<View
+									key={item.id}
+									style={{
+										width: cardWidth,
+										marginBottom: 24,
+									}}
+								>
+									<DugnadCard
+										dugnad={item}
+										onPress={() =>
+											router.push(`/(protected)/dugnadDetails/${item.id}`)
+										}
+										isFavorite={isFavorite}
+										onToggleFavorite={() => handleToggleFavorite(item)}
+									/>
+								</View>
+							);
+						})}
+					</View>
+				</View>
+			</View>
+		</ScrollView>
 	);
 }

@@ -1,89 +1,93 @@
 // src/components/DugnadCard.tsx
+
 import React from "react";
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Text, Image, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DugnadData } from "../utils/firebaseTypes";
 
 type Props = {
 	dugnad: DugnadData;
 	onPress: () => void;
-	isFavorite: boolean;
-	onToggleFavorite: () => void;
+	isFavorite?: boolean;
+	onToggleFavorite?: () => void;
 };
 
 export default function DugnadCard({
 	dugnad,
 	onPress,
-	isFavorite,
+	isFavorite = false,
 	onToggleFavorite,
 }: Props) {
+	const imageSource =
+		(dugnad.imageUrls && dugnad.imageUrls[0]) || dugnad.imageUrl || null;
+
 	return (
-		<Pressable
-			onPress={onPress}
-			className="bg-white rounded-2xl mb-3 overflow-hidden"
-		>
-			{/* Topp: bilde + hjerte */}
-			{dugnad.imageUrl ? (
-				<View>
-					<Image
-						source={{ uri: dugnad.imageUrl }}
-						className="w-full h-40"
-						resizeMode="cover"
-					/>
-					{/* Hjerte oppe til høyre */}
-					<Pressable
-						onPress={(e) => {
-							e.stopPropagation();
-							onToggleFavorite();
-						}}
-						className="absolute right-3 top-3 bg-black/50 rounded-full p-1.5"
-					>
-						<Ionicons
-							name={isFavorite ? "heart" : "heart-outline"}
-							size={20}
-							color={isFavorite ? "red" : "white"}
+		<Pressable onPress={onPress} className="mb-4">
+			<View className="bg-[#f4fbf7] rounded-xl overflow-hidden shadow-sm">
+				{/* Bilde */}
+				{imageSource && (
+					<View className="w-full h-28 relative">
+						<Image
+							source={{ uri: imageSource }}
+							className="w-full h-full"
+							resizeMode="cover"
 						/>
-					</Pressable>
-				</View>
-			) : (
-				<View className="px-4 pt-3 pb-1 flex-row justify-between items-center">
-					<Text className="text-xs text-gray-400">Ingen bilde</Text>
-					<Pressable
-						onPress={(e) => {
-							e.stopPropagation();
-							onToggleFavorite();
-						}}
-						className="rounded-full p-1"
+
+						{/* Hjerte */}
+						{onToggleFavorite && (
+							<Pressable
+								onPress={(e) => {
+									e.stopPropagation();
+									onToggleFavorite();
+								}}
+								className="absolute top-1 right-1 bg-black/40 rounded-full p-1.5"
+							>
+								<Ionicons
+									name={isFavorite ? "heart" : "heart-outline"}
+									size={18}
+									color={isFavorite ? "red" : "#F9FAFB"}
+								/>
+							</Pressable>
+						)}
+					</View>
+				)}
+
+				{/* Innhold */}
+				<View className="p-3">
+					{/* Tittel */}
+					<Text
+						className="text-[14px] font-bold text-[#064E3B] mb-2"
+						numberOfLines={1}
 					>
-						<Ionicons
-							name={isFavorite ? "heart" : "heart-outline"}
-							size={20}
-							color={isFavorite ? "red" : "#9CA3AF"}
-						/>
-					</Pressable>
-				</View>
-			)}
-
-			{/* Innhold */}
-			<View className="px-4 py-3">
-				<Text className="text-lg font-semibold text-gray-900">
-					{dugnad.title}
-				</Text>
-				<Text className="text-sm text-gray-600 mt-1">{dugnad.location}</Text>
-				<Text className="text-xs text-gray-500 mt-1">{dugnad.date}</Text>
-
-				<View className="flex-row justify-between items-center mt-2">
-					<Text className="text-xs text-gray-700">
-						{dugnad.currentVolunteers}/{dugnad.maxVolunteers} påmeldt
+						{dugnad.title}
 					</Text>
 
-					{dugnad.category ? (
-						<View className="bg-orange-100 px-2 py-1 rounded-full">
-							<Text className="text-[10px] font-semibold text-orange-700">
+					{/* Kategori */}
+					{dugnad.category && (
+						<View className="self-start bg-[#D9F2E3] px-2 py-1 rounded-full mb-2">
+							<Text className="text-[10px] font-semibold text-[#064E3B] uppercase">
 								{dugnad.category}
 							</Text>
 						</View>
-					) : null}
+					)}
+
+					{/* Lokasjon */}
+					<Text className="text-[12px] text-gray-600 mb-1" numberOfLines={1}>
+						{dugnad.location}
+					</Text>
+
+					{/* Dato */}
+					<Text className="text-[11px] text-gray-500 mb-2" numberOfLines={1}>
+						{dugnad.date}
+					</Text>
+
+					{/* Påmeldte */}
+					<Text className="text-[11px] text-gray-700">
+						Påmeldte:{" "}
+						<Text className="font-semibold">
+							{dugnad.currentVolunteers}/{dugnad.maxVolunteers}
+						</Text>
+					</Text>
 				</View>
 			</View>
 		</Pressable>

@@ -7,12 +7,13 @@ import {
 	ActivityIndicator,
 	Image,
 	ScrollView,
-	TouchableOpacity,
+	Pressable,
 } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { DugnadData } from "../../../utils/firebaseTypes";
 import { getDugnadById, updateDugnad } from "../../../api/dugnadApi";
 import { useAuthSession } from "../../../providers/authctx";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function DugnadDetailsScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,7 +23,8 @@ export default function DugnadDetailsScreen() {
 	const [isUpdating, setIsUpdating] = useState(false);
 
 	const { user } = useAuthSession();
-	const userId = user?.email ?? user?.uid ?? "Ukjent";
+	const userId = user?.email ?? user?.uid ?? "Ukjent"; // brukes til deltakere
+	const favUserId = user?.uid ?? user?.email ?? "Ukjent"; // brukes til favoritt
 
 	useEffect(() => {
 		async function load() {
@@ -41,6 +43,7 @@ export default function DugnadDetailsScreen() {
 		load();
 	}, [id]);
 
+	// 🔹 Påmelding / avmelding (BEHOLDT AKKURAT SOM DU HADDE)
 	const handleToggleJoin = async () => {
 		if (!dugnad || !userId) return;
 
@@ -53,7 +56,6 @@ export default function DugnadDetailsScreen() {
 			? currentParticipants.filter((p) => p !== userId)
 			: [...currentParticipants, userId];
 
-		// 🔹 juster antall basert på tidligere currentVolunteers
 		const newCount = alreadyJoined
 			? Math.max(0, dugnad.currentVolunteers - 1)
 			: dugnad.currentVolunteers + 1;
@@ -64,7 +66,6 @@ export default function DugnadDetailsScreen() {
 			currentVolunteers: newCount,
 		};
 
-		// Oppdater UI direkte
 		setDugnad(updatedDugnad);
 
 		try {
@@ -76,6 +77,27 @@ export default function DugnadDetailsScreen() {
 			console.error("❌ Feil ved oppdatering av dugnad:", error);
 		} finally {
 			setIsUpdating(false);
+		}
+	};
+
+	// 🔹 Favoritt (ny – i samme stil som likes hos Yuan)
+	const handleToggleFavorite = async () => {
+		if (!dugnad || !favUserId) return;
+
+		const currentFavs = dugnad.favoritedBy ?? [];
+		const alreadyFav = currentFavs.includes(favUserId);
+
+		const updatedFavs = alreadyFav
+			? currentFavs.filter((u) => u !== favUserId)
+			: [...currentFavs, favUserId];
+
+		// Oppdater UI
+		setDugnad({ ...dugnad, favoritedBy: updatedFavs });
+
+		try {
+			await updateDugnad(dugnad.id, { favoritedBy: updatedFavs });
+		} catch (error) {
+			console.error("❌ Feil ved oppdatering av favoritt:", error);
 		}
 	};
 
@@ -102,6 +124,9 @@ export default function DugnadDetailsScreen() {
 	const participants = dugnad.participants ?? [];
 	const alreadyJoined = participants.includes(userId);
 	const isFull = dugnad.currentVolunteers >= dugnad.maxVolunteers;
+
+	const favList = dugnad.favoritedBy ?? [];
+	const isFavorite = favList.includes(favUserId);
 
 	return (
 		<View className="flex-1 bg-[#20202A]">
@@ -140,9 +165,22 @@ export default function DugnadDetailsScreen() {
 
 				{/* Kort med innhold */}
 				<View className="bg-white rounded-2xl p-5 mb-6">
-					<Text className="text-2xl font-bold text-gray-900 mb-2">
-						{dugnad.title}
-					</Text>
+					{/* Tittel + favoritt-hjerte på én rad */}
+					<View className="flex-row items-center justify-between mb-2">
+						<Text className="text-2xl font-bold text-gray-900 flex-1 pr-4">
+							{dugnad.title}
+						</Text>
+						<Pressable
+							onPress={handleToggleFavorite}
+							className="p-2 rounded-full bg-black/10"
+						>
+							<Ionicons
+								name={isFavorite ? "heart" : "heart-outline"}
+								size={24}
+								color={isFavorite ? "red" : "#4B5563"}
+							/>
+						</Pressable>
+					</View>
 
 					{/* Kategori-pill */}
 					<View className="self-start bg-orange-100 px-3 py-1 rounded-full mb-3">
@@ -177,7 +215,7 @@ export default function DugnadDetailsScreen() {
 					</Text>
 				</View>
 
-				{/* 🔹 Deltakerliste */}
+				{/* 🔹 Deltakerliste (BEHOLDT) */}
 				<View className="bg-[#111827] rounded-2xl p-4 mb-8">
 					<Text className="text-white text-lg font-semibold mb-2">
 						Deltakere
@@ -198,14 +236,14 @@ export default function DugnadDetailsScreen() {
 					)}
 				</View>
 
-				{/* Påmeldingsknapp */}
+				{/* Påmeldingsknapp (BEHOLDT) */}
 				<View className="mb-10">
 					{isFull && !alreadyJoined ? (
 						<View className="bg-gray-600 py-3 rounded-xl items-center">
 							<Text className="text-white font-semibold">Dugnaden er full</Text>
 						</View>
 					) : (
-						<TouchableOpacity
+						<Pressable
 							onPress={handleToggleJoin}
 							disabled={isUpdating}
 							className={`py-3 rounded-xl items-center ${
@@ -215,7 +253,7 @@ export default function DugnadDetailsScreen() {
 							<Text className="text-white font-semibold text-lg">
 								{alreadyJoined ? "Meld meg av" : "Meld meg på dugnaden"}
 							</Text>
-						</TouchableOpacity>
+						</Pressable>
 					)}
 				</View>
 			</ScrollView>

@@ -6,10 +6,12 @@ import { useRouter, useFocusEffect } from "expo-router";
 
 import DugnadCard from "../../../components/DugnadCard";
 import { DugnadData } from "../../../utils/firebaseTypes";
-import { getDugnads } from "../../../api/dugnadApi";
+import { getDugnads, updateDugnad } from "../../../api/dugnadApi";
+import { useAuthSession } from "../../../providers/authctx";
 
 export default function DugnaderHomeScreen() {
 	const router = useRouter();
+	const { user } = useAuthSession();
 
 	const [dugnader, setDugnader] = useState<DugnadData[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ export default function DugnaderHomeScreen() {
 		}, [loadDugnader])
 	);
 
-	// 🔍 Live-filtering på tittel + kategori (Yuan-style, client-side)
+	// 🔍 Live-filtering på tittel + kategori
 	const filteredDugnader = useMemo(() => {
 		const q = search.trim().toLowerCase();
 		if (!q) return dugnader;
@@ -45,6 +47,29 @@ export default function DugnaderHomeScreen() {
 		});
 	}, [search, dugnader]);
 
+	const handleToggleFavorite = async (dugnad: DugnadData) => {
+		if (!user) return; // sikkerhetsnett, skal egentlig alltid være logget inn her
+
+		const uid = user.uid;
+		const current = dugnad.favoritedBy ?? [];
+		const isFav = current.includes(uid);
+		const updated = isFav
+			? current.filter((x) => x !== uid)
+			: [...current, uid];
+
+		// Oppdater UI med en gang (optimistisk)
+		setDugnader((prev) =>
+			prev.map((d) => (d.id === dugnad.id ? { ...d, favoritedBy: updated } : d))
+		);
+
+		try {
+			await updateDugnad(dugnad.id, { favoritedBy: updated });
+		} catch (error) {
+			console.error("❌ Feil ved oppdatering av favoritt:", error);
+			// evt. rulle tilbake, men ikke nødvendig til eksamen
+		}
+	};
+
 	if (loading) {
 		return (
 			<View className="flex-1 bg-[#20202A] items-center justify-center">
@@ -53,12 +78,19 @@ export default function DugnaderHomeScreen() {
 		);
 	}
 
-	const renderItem = ({ item }: { item: DugnadData }) => (
-		<DugnadCard
-			dugnad={item}
-			onPress={() => router.push(`/(protected)/dugnadDetails/${item.id}`)}
-		/>
-	);
+	const renderItem = ({ item }: { item: DugnadData }) => {
+		const uid = user?.uid ?? "";
+		const isFavorite = item.favoritedBy?.includes(uid) ?? false;
+
+		return (
+			<DugnadCard
+				dugnad={item}
+				onPress={() => router.push(`/(protected)/dugnadDetails/${item.id}`)}
+				isFavorite={isFavorite}
+				onToggleFavorite={() => handleToggleFavorite(item)}
+			/>
+		);
+	};
 
 	return (
 		<View className="flex-1 bg-[#20202A] px-4 pt-10">
@@ -71,13 +103,15 @@ export default function DugnaderHomeScreen() {
 			</Text>
 
 			{/* 🔍 Søkefelt */}
-			<TextInput
-				value={search}
-				onChangeText={setSearch}
-				placeholder="Søk på tittel eller kategori..."
-				placeholderTextColor="#9CA3AF"
-				className="bg-[#111827] text-white px-4 py-2 rounded-xl mb-4 border border-gray-700"
-			/>
+			<View className="mb-4">
+				<TextInput
+					value={search}
+					onChangeText={setSearch}
+					placeholder="Søk på tittel eller kategori..."
+					placeholderTextColor="#9CA3AF"
+					className="bg-[#111827] text-white px-4 py-2 rounded-xl border border-gray-700"
+				/>
+			</View>
 
 			{/* 🔹 Knapp for å opprette ny dugnad */}
 			<Pressable

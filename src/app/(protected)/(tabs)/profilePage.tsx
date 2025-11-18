@@ -5,7 +5,7 @@ import { View, Text, FlatList } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 
 import { useAuthSession } from "../../../providers/authctx";
-import { getDugnads } from "../../../api/dugnadApi";
+import { getDugnads, updateDugnad } from "../../../api/dugnadApi";
 import { DugnadData } from "../../../utils/firebaseTypes";
 import DugnadCard from "../../../components/DugnadCard";
 
@@ -13,27 +13,27 @@ export default function ProfilePage() {
 	const router = useRouter();
 	const { user } = useAuthSession();
 
-	const userId = user?.email ?? user?.uid ?? "Ukjent";
+	// 🔹 ID for påmeldinger (samme som du brukte før)
+	const userIdForParticipants = user?.email ?? user?.uid ?? "Ukjent";
+	// 🔹 ID for favoritter (samme logikk som i detaljsiden)
+	const favUserId = user?.uid ?? user?.email ?? "Ukjent";
 
-	const [myDugnads, setMyDugnads] = useState<DugnadData[]>([]);
+	const [allDugnads, setAllDugnads] = useState<DugnadData[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	const loadMyDugnads = useCallback(async () => {
-		if (!userId) return;
+		if (!userIdForParticipants) return;
 
 		try {
 			setLoading(true);
 			const all = (await getDugnads()) as DugnadData[];
-
-			// 🔹 Filtrer dugnader der brukeren er påmeldt
-			const mine = all.filter((d) => d.participants?.includes(userId));
-			setMyDugnads(mine);
+			setAllDugnads(all);
 		} catch (error) {
-			console.log("Feil ved henting av mine dugnader:", error);
+			console.log("Feil ved henting av dugnader:", error);
 		} finally {
 			setLoading(false);
 		}
-	}, [userId]);
+	}, [userIdForParticipants]);
 
 	// Hent på nytt hver gang profilsiden får fokus
 	useFocusEffect(
@@ -41,6 +41,37 @@ export default function ProfilePage() {
 			loadMyDugnads();
 		}, [loadMyDugnads])
 	);
+
+	// 🔹 Mine påmeldte dugnader (samme logikk som du hadde før)
+	const myDugnads = allDugnads.filter((d) =>
+		d.participants?.includes(userIdForParticipants)
+	);
+
+	// 🔹 Mine favoritter
+	const favoriteDugnads = allDugnads.filter((d) =>
+		(d.favoritedBy ?? []).includes(favUserId)
+	);
+
+	const handleToggleFavorite = async (dugnad: DugnadData) => {
+		if (!favUserId) return;
+
+		const current = dugnad.favoritedBy ?? [];
+		const alreadyFav = current.includes(favUserId);
+		const updated = alreadyFav
+			? current.filter((u) => u !== favUserId)
+			: [...current, favUserId];
+
+		// Oppdater lokalt UI
+		setAllDugnads((prev) =>
+			prev.map((d) => (d.id === dugnad.id ? { ...d, favoritedBy: updated } : d))
+		);
+
+		try {
+			await updateDugnad(dugnad.id, { favoritedBy: updated });
+		} catch (error) {
+			console.log("Feil ved oppdatering av favoritt:", error);
+		}
+	};
 
 	if (loading) {
 		return (
@@ -62,24 +93,60 @@ export default function ProfilePage() {
 
 			<Text className="text-gray-300 mb-4">
 				Du er påmeldt <Text className="font-semibold">{myDugnads.length}</Text>{" "}
-				dugnad{myDugnads.length === 1 ? "" : "er"}.
+				dugnad
+				{myDugnads.length === 1 ? "" : "er"}.
 			</Text>
 
 			{/* Divider */}
 			<View className="h-[1px] bg-gray-700 mb-4" />
 
+			{/* 🔹 Mine dugnader (påmeldte) */}
 			<Text className="text-white text-lg font-semibold mb-2">
 				Mine dugnader
 			</Text>
 
 			{myDugnads.length === 0 ? (
-				<Text className="text-gray-400">
+				<Text className="text-gray-400 mb-6">
 					Du er ikke påmeldt noen dugnader enda. Finn en dugnad under
 					“Dugnader”-fanen og meld deg på.
 				</Text>
 			) : (
 				<FlatList
 					data={myDugnads}
+					keyExtractor={(item) => item.id}
+					contentContainerStyle={{ paddingBottom: 16 }}
+					renderItem={({ item }) => {
+						const isFavorite = item.favoritedBy?.includes(favUserId) ?? false;
+						return (
+							<DugnadCard
+								dugnad={item}
+								onPress={() =>
+									router.push(`/(protected)/dugnadDetails/${item.id}`)
+								}
+								isFavorite={isFavorite}
+								onToggleFavorite={() => handleToggleFavorite(item)}
+							/>
+						);
+					}}
+				/>
+			)}
+
+			{/* Divider */}
+			<View className="h-[1px] bg-gray-700 my-4" />
+
+			{/* 🔹 Mine favoritter */}
+			<Text className="text-white text-lg font-semibold mb-2">
+				Mine favoritt-dugnader
+			</Text>
+
+			{favoriteDugnads.length === 0 ? (
+				<Text className="text-gray-400">
+					Du har ingen favoritter enda. Trykk på hjertet på en dugnad for å
+					lagre den her.
+				</Text>
+			) : (
+				<FlatList
+					data={favoriteDugnads}
 					keyExtractor={(item) => item.id}
 					contentContainerStyle={{ paddingBottom: 24 }}
 					renderItem={({ item }) => (
@@ -88,6 +155,8 @@ export default function ProfilePage() {
 							onPress={() =>
 								router.push(`/(protected)/dugnadDetails/${item.id}`)
 							}
+							isFavorite={true}
+							onToggleFavorite={() => handleToggleFavorite(item)}
 						/>
 					)}
 				/>

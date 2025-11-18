@@ -11,25 +11,12 @@ import { db } from "../../firebaseConfig";
 import { uploadImageToFirebase } from "./imageApi";
 import { DugnadData } from "../utils/firebaseTypes";
 
-// ---------- Typer ----------
-
-type NewDugnadInput = {
-	title: string;
-	description: string;
-	location: string;
-	date: string;
-	maxVolunteers: number;
-	category: string;
-	images?: string[]; // rå URIs fra ImagePicker
-};
-
-// ---------- Hent alle dugnader ----------
-
+// --- Hent alle dugnader ---
 export async function getDugnads(): Promise<DugnadData[]> {
 	try {
 		const snapshot = await getDocs(collection(db, "dugnader"));
 
-		return snapshot.docs.map((docSnap) => {
+		const dugnader = snapshot.docs.map((docSnap) => {
 			const data = docSnap.data() as any;
 
 			const imageUrls: string[] =
@@ -47,16 +34,18 @@ export async function getDugnads(): Promise<DugnadData[]> {
 				imageUrl: imageUrls[0] ?? null,
 				imageUrls,
 				participants: data.participants ?? [],
+				favoritedBy: data.favoritedBy ?? [],
 			};
 		});
+
+		return dugnader;
 	} catch (error) {
 		console.error("❌ Feil ved henting av dugnader:", error);
 		throw error;
 	}
 }
 
-// ---------- Hent én dugnad ----------
-
+// --- Hent én dugnad ---
 export async function getDugnadById(id: string): Promise<DugnadData | null> {
 	try {
 		const ref = doc(db, "dugnader", id);
@@ -90,41 +79,48 @@ export async function getDugnadById(id: string): Promise<DugnadData | null> {
 	}
 }
 
-// ---------- Oppdater dugnad (påmelding osv.) ----------
-
-export async function updateDugnad(id: string, data: Partial<DugnadData>) {
+// --- Oppdater dugnad (påmelding osv.) ---
+export async function updateDugnad(
+	id: string,
+	data: Partial<DugnadData>
+): Promise<void> {
 	try {
 		const ref = doc(db, "dugnader", id);
-		await updateDoc(ref, data as any);
+		await updateDoc(ref, data);
 	} catch (error) {
 		console.error("❌ Feil ved oppdatering av dugnad:", error);
 		throw error;
 	}
 }
 
-// ---------- Opprett ny dugnad (inkl. bildefiler) ----------
+// --- TYPE for ny dugnad (det CreateDugnadScreen sender inn) ---
+type NewDugnadInput = {
+	title: string;
+	description: string;
+	location: string;
+	date: string;
+	maxVolunteers: number;
+	category: string;
+	images?: string[]; // rå URIs fra ImagePicker
+};
 
-export async function createDugnad(input: NewDugnadInput) {
+// --- Opprett ny dugnad: laster opp bilder og lagrer URLer ---
+export async function createDugnad(input: NewDugnadInput): Promise<string> {
 	try {
-		// 1) Last opp bilder hvis noen er valgt
-		let imageUrls: string[] = [];
+		const uploadedUrls: string[] = [];
 
-		if (input.images && input.images.length > 0) {
-			const uploaded: string[] = [];
-
+		if (Array.isArray(input.images) && input.images.length > 0) {
 			for (const uri of input.images) {
-				const url = await uploadImageToFirebase(uri);
-				if (url) {
-					uploaded.push(url);
-				} else {
-					console.warn("⚠️ Klarte ikke å laste opp et bilde, hopper over.");
+				if (!uri) continue;
+				const downloadURL = await uploadImageToFirebase(uri);
+
+				// uploadImageToFirebase returnerer "ERROR" hvis noe gikk galt
+				if (downloadURL && downloadURL !== "ERROR") {
+					uploadedUrls.push(downloadURL);
 				}
 			}
-
-			imageUrls = uploaded;
 		}
 
-		// 2) Lag Firestore-dokument
 		const docRef = await addDoc(collection(db, "dugnader"), {
 			title: input.title,
 			description: input.description,
@@ -133,12 +129,11 @@ export async function createDugnad(input: NewDugnadInput) {
 			maxVolunteers: input.maxVolunteers,
 			currentVolunteers: 0,
 			category: input.category,
-			imageUrl: imageUrls[0] ?? null,
-			imageUrls,
+			imageUrl: uploadedUrls[0] ?? null,
+			imageUrls: uploadedUrls,
 			participants: [],
 		});
 
-		console.log("✅ DUGNAD OPPRETTET med id:", docRef.id);
 		return docRef.id;
 	} catch (error) {
 		console.error("❌ Feil ved opprettelse av dugnad:", error);

@@ -43,7 +43,7 @@ export default function DugnadDetailsScreen() {
 		load();
 	}, [id]);
 
-	// 🔹 Påmelding / avmelding (samme logikk som før)
+	// Meld på/av
 	const handleToggleJoin = async () => {
 		if (!dugnad || !userId) return;
 
@@ -74,13 +74,13 @@ export default function DugnadDetailsScreen() {
 				currentVolunteers: newCount,
 			});
 		} catch (error) {
-			console.error("❌ Feil ved oppdatering av dugnad:", error);
+			console.error("Feil ved oppdatering av dugnad:", error);
 		} finally {
 			setIsUpdating(false);
 		}
 	};
 
-	// 🔹 Favoritt (samme stil som likes hos Yuan)
+	// Favoritt
 	const handleToggleFavorite = async () => {
 		if (!dugnad || !favUserId) return;
 
@@ -97,7 +97,7 @@ export default function DugnadDetailsScreen() {
 		try {
 			await updateDugnad(dugnad.id, { favoritedBy: updatedFavs });
 		} catch (error) {
-			console.error("❌ Feil ved oppdatering av favoritt:", error);
+			console.error("Feil ved oppdatering av favoritt:", error);
 		}
 	};
 
@@ -130,7 +130,6 @@ export default function DugnadDetailsScreen() {
 
 	return (
 		<View className="flex-1 bg-[#ECFDF3]">
-			{/* Header-tittel med grønn styling */}
 			<Stack.Screen
 				options={{
 					title: dugnad?.title ?? "Dugnad",
@@ -141,7 +140,7 @@ export default function DugnadDetailsScreen() {
 			/>
 
 			<ScrollView contentContainerClassName="px-4 pt-6 pb-10">
-				{/* Bilde hvis det finnes */}
+				// Oppdater UI
 				{dugnad.imageUrls && dugnad.imageUrls.length > 0 ? (
 					<ScrollView
 						horizontal
@@ -165,10 +164,8 @@ export default function DugnadDetailsScreen() {
 						resizeMode="cover"
 					/>
 				) : null}
-
-				{/* Kort med innhold – nå i samme grønne stil som kortene dine */}
 				<View className="bg-[#f4fbf7] rounded-2xl p-5 mb-6 border border-[#166534]">
-					{/* Tittel + favoritt-hjerte på én rad */}
+					{/* Tittel + favoritt knapp */}
 					<View className="flex-row items-center justify-between mb-3">
 						<Text className="text-2xl font-bold text-[#064E3B] flex-1 pr-4">
 							{dugnad.title}
@@ -184,39 +181,32 @@ export default function DugnadDetailsScreen() {
 							/>
 						</Pressable>
 					</View>
-
-					{/* Kategori-pill */}
+					{/* Kategori */}
 					<View className="self-start bg-[#D9F2E3] px-3 py-1 rounded-full mb-3">
 						<Text className="text-xs font-semibold text-[#064E3B] uppercase">
 							{dugnad.category ?? "Ukjent kategori"}
 						</Text>
 					</View>
-
 					<Text className="text-base text-[#166534] mb-4">
 						{dugnad.description}
 					</Text>
-
 					<View className="h-[1px] bg-[#166534] mb-3" />
-
 					<Text className="text-sm text-[#166534] mb-3">
 						Sted:{" "}
 						<Text className="font-semibold text-[#064E3B]">
 							{dugnad.location}
 						</Text>
 					</Text>
-
 					<Text className="text-sm text-[#166534] mb-3">
 						Tidspunkt:{" "}
 						<Text className="font-semibold text-[#064E3B]">{dugnad.date}</Text>
 					</Text>
-
 					<Text className="text-sm text-[#166534] mb-3">
 						Nødvendige frivillige:{" "}
 						<Text className="font-semibold text-[#064E3B]">
 							{dugnad.maxVolunteers}
 						</Text>
 					</Text>
-
 					<Text className="text-sm text-[#166534]">
 						Påmeldte:{" "}
 						<Text className="font-semibold">
@@ -224,8 +214,7 @@ export default function DugnadDetailsScreen() {
 						</Text>
 					</Text>
 				</View>
-
-				{/* 🔹 Deltakerliste – gjort lys og grønn */}
+				{/* Deltakerliste, fikk ikke gjort ferdig pga mangel av tid. Nå viser den bare mailen til den som er innlogget hvis den */}
 				<View className="bg-[#F0FDF4] rounded-2xl p-4 mb-8 border border-[#166534]">
 					<Text className="text-[#064E3B] text-lg font-semibold mb-2">
 						Deltakere
@@ -245,7 +234,6 @@ export default function DugnadDetailsScreen() {
 						</View>
 					)}
 				</View>
-
 				{/* Påmeldingsknapp – samme funksjon, grønn stil */}
 				<View className="mb-10">
 					{isFull && !alreadyJoined ? (

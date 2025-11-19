@@ -1,10 +1,10 @@
+// src/app/authentication.tsx
 import React, { useState, useEffect } from "react";
 import {
 	View,
 	Text,
 	TextInput,
 	Pressable,
-	Alert,
 	Platform,
 	Image,
 } from "react-native";
@@ -22,23 +22,17 @@ WebBrowser.maybeCompleteAuthSession();
 export default function AuthenticationScreen() {
 	const { signIn, signUp } = useAuthSession();
 	const router = useRouter();
-
 	const [mode, setMode] = useState<"login" | "register">("register");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [username, setUsername] = useState("");
-
-	// 🔹 Google-klient-ID fra .env
 	const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 	if (!webClientId) {
 		console.warn("Mangler EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID i .env");
 	}
 
-	// 🔹 Redirect-URL
-	// Web → /redirect
-	// Native → Expo sin standard makeRedirectUri()
+	// Redirect-URL
 	const redirectUri =
-		// @ts-ignore – Platform type kjenner ikke "web" i TS, men det funker i runtime
 		Platform.OS === "web"
 			? "http://127.0.0.1:8081/redirect"
 			: AuthSession.makeRedirectUri();
@@ -52,12 +46,14 @@ export default function AuthenticationScreen() {
 
 	const submit = async () => {
 		if (!email || !password || (mode === "register" && !username.trim())) {
-			Alert.alert(
-				"Feil",
-				mode === "register"
-					? "Fyll inn e-post, passord og navn/brukernavn."
-					: "Fyll inn både e-post og passord."
-			);
+			Toast.show({
+				type: "error",
+				text1: "Feil",
+				text2:
+					mode === "register"
+						? "Fyll inn e-post, passord og navn/brukernavn."
+						: "Fyll inn både e-post og passord.",
+			});
 			return;
 		}
 
@@ -70,32 +66,38 @@ export default function AuthenticationScreen() {
 
 			router.replace("/(protected)/(tabs)");
 		} catch (e: any) {
-			Alert.alert("Feil", e?.message ?? "Kunne ikke logge inn.");
+			Toast.show({
+				type: "error",
+				text1: "Feil",
+				text2: e?.message ?? "Kunne ikke logge inn.",
+			});
 		}
 	};
 
-	// 🔹 Google-login knapp
+	// Google knapp
 	const handleGoogleLogin = async () => {
 		if (!request) {
-			Alert.alert(
-				"Google-innlogging",
-				"Kan ikke starte Google-innlogging ennå."
-			);
+			Toast.show({
+				type: "error",
+				text1: "Google-innlogging",
+				text2: "Kan ikke starte Google-innlogging ennå.",
+			});
 			return;
 		}
 
 		try {
 			await promptAsync();
-			// På web vil du nå havne på /redirect,
-			// og der tar redirect.tsx over.
-			// På native kommer vi tilbake i `response` under her.
 		} catch (e: any) {
-			Alert.alert("Feil", e?.message ?? "Kunne ikke starte Google-innlogging.");
+			Toast.show({
+				type: "error",
+				text1: "Feil",
+				text2: e?.message ?? "Kunne ikke starte Google-innlogging.",
+			});
 		}
 	};
 
 	useEffect(() => {
-		// 🌐 WEB: lytt på meldinger fra redirect-vinduet
+		// Lytter på meldinger fra redirect vindu
 		if (Platform.OS === "web") {
 			const handleMessage = async (event: MessageEvent) => {
 				if (!event.data || typeof event.data !== "object") return;
@@ -106,11 +108,14 @@ export default function AuthenticationScreen() {
 					error?: string;
 				};
 
-				// 👈 viktig: samme type som du sender i redirect.tsx
 				if (type !== "GOOGLE_AUTH_SUCCESS") return;
 
 				if (error) {
-					Alert.alert("Google-innlogging feilet", error);
+					Toast.show({
+						type: "error",
+						text1: "Google-innlogging feilet",
+						text2: error,
+					});
 					return;
 				}
 
@@ -123,23 +128,22 @@ export default function AuthenticationScreen() {
 						});
 						router.replace("/(protected)/(tabs)");
 					} catch (e: any) {
-						Alert.alert(
-							"Feil",
-							e?.message ?? "Kunne ikke logge inn med Google."
-						);
+						Toast.show({
+							type: "error",
+							text1: "Feil",
+							text2: e?.message ?? "Kunne ikke logge inn med Google.",
+						});
 					}
 				}
 			};
 
-			// @ts-ignore – TS kjenner ikke MessageEvent-typen her
 			window.addEventListener("message", handleMessage);
 			return () => {
-				// @ts-ignore
 				window.removeEventListener("message", handleMessage);
 			};
 		}
 
-		// 📱 NATIVE (iOS/Android): bruk response direkte
+		// Native, bruker responsen direkte
 		if (response?.type === "success") {
 			const idToken = (response as any).params?.id_token as string | undefined;
 
@@ -154,7 +158,11 @@ export default function AuthenticationScreen() {
 					});
 					router.replace("/(protected)/(tabs)");
 				} catch (e: any) {
-					Alert.alert("Feil", e?.message ?? "Kunne ikke logge inn med Google.");
+					Toast.show({
+						type: "error",
+						text1: "Feil",
+						text2: e?.message ?? "Kunne ikke logge inn med Google.",
+					});
 				}
 			})();
 		}
@@ -162,12 +170,10 @@ export default function AuthenticationScreen() {
 
 	return (
 		<View className="flex-1 bg-[#ECFDF3] justify-center px-6">
-			{/* Overskrift */}
+			// Overskrift, Logg inn/Registrer deg
 			<Text className="text-[#064E3B] text-3xl font-bold text-center mb-10">
 				{mode === "login" ? "Logg inn" : "Registrer deg"}
 			</Text>
-
-			{/* Container som holder inputs midtstilt og smal */}
 			<View
 				style={{
 					width: "100%",
@@ -175,7 +181,7 @@ export default function AuthenticationScreen() {
 					alignSelf: "center",
 				}}
 			>
-				{/* Navn (kun registrering) */}
+				// Navn/brukernavn, kun ved registrering
 				{mode === "register" && (
 					<>
 						<Text className="text-[#064E3B] mb-1">Navn / brukernavn</Text>
@@ -189,8 +195,7 @@ export default function AuthenticationScreen() {
 						/>
 					</>
 				)}
-
-				{/* E-post */}
+				// E-post
 				<Text className="text-[#064E3B] mb-1">E-post</Text>
 				<TextInput
 					className="bg-[#f4fbf7] rounded-xl px-4 py-3 mb-4 border border-[#064E3B]"
@@ -201,8 +206,7 @@ export default function AuthenticationScreen() {
 					placeholder="ola@normann.no"
 					placeholderTextColor="#6B7280"
 				/>
-
-				{/* Passord */}
+				// Passord
 				<Text className="text-[#064E3B] mb-1">Passord</Text>
 				<TextInput
 					className="bg-[#F0FDF4] rounded-xl px-4 py-3 mb-6 border border-[#064E3B]"
@@ -212,8 +216,7 @@ export default function AuthenticationScreen() {
 					placeholder="Minst 6 tegn"
 					placeholderTextColor="#6B7280"
 				/>
-
-				{/* Primær knapp */}
+				// Logg inn/registrer deg knapp
 				<Pressable
 					className="rounded-full py-3 mb-3 items-center"
 					style={{
@@ -225,15 +228,12 @@ export default function AuthenticationScreen() {
 						{mode === "login" ? "Logg inn" : "Registrer meg"}
 					</Text>
 				</Pressable>
-
-				{/* Separator */}
 				<View className="flex-row items-center my-4">
 					<View className="flex-1 h-[1px] bg-[#BBF7D0]" />
 					<Text className="mx-3 text-[#166534] font-medium">eller</Text>
 					<View className="flex-1 h-[1px] bg-[#BBF7D0]" />
 				</View>
-
-				{/* Google login button */}
+				// Google logg inn-knapp
 				<Pressable
 					onPress={handleGoogleLogin}
 					className="flex-row items-center justify-center bg-white border border-[#064E3B] py-3 rounded-full mb-3"
@@ -246,8 +246,7 @@ export default function AuthenticationScreen() {
 						Logg inn med Google
 					</Text>
 				</Pressable>
-
-				{/* Bytt modus */}
+				// Bytte mellom å logge inn eller registrere
 				<Pressable
 					onPress={() =>
 						setMode((prev) => (prev === "login" ? "register" : "login"))

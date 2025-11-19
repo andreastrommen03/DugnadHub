@@ -7,16 +7,14 @@ export default function TabsLayout() {
 		<Tabs
 			screenOptions={{
 				headerShown: false,
-
-				// 🌿 God kontrast + pastellstil
-				tabBarActiveTintColor: "#ECFDF3", // veldig lys pastell
-				tabBarInactiveTintColor: "#BBF7D0", // lys mintgrønn
+				tabBarActiveTintColor: "#ECFDF3",
+				tabBarInactiveTintColor: "#BBF7D0",
 
 				tabBarStyle: {
-					backgroundColor: "#064E3B", // mørk grønn
+					backgroundColor: "#064E3B",
 					borderTopWidth: 1,
-					borderTopColor: "#0B624E", // subtil kontrast
-					height: 60, // litt større for lesbarhet
+					borderTopColor: "#0B624E",
+					height: 60,
 				},
 
 				tabBarLabelStyle: {

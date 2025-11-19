@@ -6,7 +6,6 @@ import {
 	TextInput,
 	ScrollView,
 	Pressable,
-	Alert,
 	ActivityIndicator,
 	KeyboardAvoidingView,
 	Platform,
@@ -14,6 +13,7 @@ import {
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import Toast from "react-native-toast-message";
 
 import { createDugnad } from "../../api/dugnadApi";
 
@@ -33,13 +33,14 @@ export default function CreateDugnadScreen() {
 	const pickFromLibrary = async () => {
 		const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
 		if (!perm.granted) {
-			Alert.alert(
-				"Tillatelse nødvendig",
-				"Du må gi tilgang til bilder for å velge fra galleri."
-			);
+			Toast.show({
+				type: "error",
+				text1: "Tillatelse nødvendig",
+				text2: "Du må gi tilgang til bilder for å velge fra galleri.",
+			});
 			return;
 		}
-		//fiks dette
+
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ImagePicker.MediaTypeOptions.Images,
 			allowsEditing: true,
@@ -56,10 +57,11 @@ export default function CreateDugnadScreen() {
 	const pickFromCamera = async () => {
 		const perm = await ImagePicker.requestCameraPermissionsAsync();
 		if (!perm.granted) {
-			Alert.alert(
-				"Tillatelse nødvendig",
-				"Du må gi tilgang til kamera for å ta bilde."
-			);
+			Toast.show({
+				type: "error",
+				text1: "Tillatelse nødvendig",
+				text2: "Du må gi tilgang til kamera for å ta bilde.",
+			});
 			return;
 		}
 
@@ -74,18 +76,20 @@ export default function CreateDugnadScreen() {
 
 	const handleCreate = async () => {
 		if (!title.trim() || !description.trim() || !location.trim()) {
-			Alert.alert(
-				"Manglende informasjon",
-				"Tittel, beskrivelse og sted må fylles ut."
-			);
+			Toast.show({
+				type: "error",
+				text1: "Manglende informasjon",
+				text2: "Tittel, beskrivelse og sted må fylles ut.",
+			});
 			return;
 		}
 
 		if (!maxVolunteers.trim() || isNaN(Number(maxVolunteers))) {
-			Alert.alert(
-				"Ugyldig antall",
-				"Skriv inn et gyldig tall for maks frivillige."
-			);
+			Toast.show({
+				type: "error",
+				text1: "Ugyldig antall",
+				text2: "Skriv inn et gyldig tall for maks frivillige.",
+			});
 			return;
 		}
 
@@ -106,10 +110,11 @@ export default function CreateDugnadScreen() {
 			router.replace("/(protected)/(tabs)");
 		} catch (error) {
 			console.error("Feil ved oppretting av dugnad:", error);
-			Alert.alert(
-				"Noe gikk galt",
-				"Kunne ikke opprette dugnad. Prøv igjen senere."
-			);
+			Toast.show({
+				type: "error",
+				text1: "Noe gikk galt",
+				text2: "Kunne ikke opprette dugnad. Prøv igjen senere.",
+			});
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -120,9 +125,9 @@ export default function CreateDugnadScreen() {
 			<Stack.Screen
 				options={{
 					title: "Ny dugnad",
-					headerStyle: { backgroundColor: "#064E3B" }, // grønn toppbar
-					headerTintColor: "#D9F2E3", // grønt ikon + tekst
-					headerTitleStyle: { color: "#D9F2E3" }, // tittel
+					headerStyle: { backgroundColor: "#064E3B" },
+					headerTintColor: "#D9F2E3",
+					headerTitleStyle: { color: "#D9F2E3" },
 				}}
 			/>
 

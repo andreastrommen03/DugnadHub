@@ -74,8 +74,6 @@ export default function ProfilePage() {
 			</View>
 		);
 	}
-
-	// 🔥 LITT MINDRE CARDS KUN PÅ PROFIL
 	const cardWidth = Platform.OS === "web" ? "18%" : "30%";
 
 	return (
@@ -87,14 +85,12 @@ export default function ProfilePage() {
 				<Text className="text-[#064E3B] text-3xl font-bold mb-2">
 					Min profil
 				</Text>
-
 				<Text className="text-[#166534] mb-1">
 					Innlogget som{" "}
 					<Text className="font-semibold">
 						{user?.email ?? "ukjent bruker"}
 					</Text>
 				</Text>
-
 				<Text className="text-[#166534] mb-4">
 					Du er påmeldt{" "}
 					<Text className="font-semibold">{myDugnads.length}</Text> dugnad
@@ -103,14 +99,11 @@ export default function ProfilePage() {
 					favoritt-dugnad
 					{favoriteDugnads.length === 1 ? "" : "er"}.
 				</Text>
-
 				<View className="h-[1px] bg-[#064E3B] mb-6" />
-
-				{/* 🔹 MINE DUGNADER */}
+				// Mine påmeldte dugnader
 				<Text className="text-[#064E3B] text-2xl font-semibold mb-3">
 					Mine påmeldte dugnader
 				</Text>
-
 				{myDugnads.length === 0 ? (
 					<Text className="text-[#166534] mb-10 text-sm">
 						Du er ikke påmeldt noen dugnader enda.
@@ -147,14 +140,11 @@ export default function ProfilePage() {
 						</View>
 					</View>
 				)}
-
 				<View className="h-[1px] bg-[#064E3B] my-6" />
-
-				{/* 🔹 FAVORITTER */}
+				// Mine favoritt dugnader
 				<Text className="text-[#064E3B] text-2xl font-semibold mb-3">
 					Mine favoritt-dugnader
 				</Text>
-
 				{favoriteDugnads.length === 0 ? (
 					<Text className="text-[#166534] text-sm mb-10">
 						Du har ingen favoritter enda.
@@ -186,9 +176,7 @@ export default function ProfilePage() {
 						</View>
 					</View>
 				)}
-
-				{/* 🔻 Logg ut-knapp */}
-
+				// Logg ut-knapp
 				<View className="mt-8 mb-6 items-center">
 					<Pressable
 						onPress={async () => {

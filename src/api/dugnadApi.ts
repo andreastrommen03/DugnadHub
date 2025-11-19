@@ -40,7 +40,7 @@ export async function getDugnads(): Promise<DugnadData[]> {
 
 		return dugnader;
 	} catch (error) {
-		console.error("❌ Feil ved henting av dugnader:", error);
+		console.error("Feil ved henting av dugnader:", error);
 		throw error;
 	}
 }
@@ -52,7 +52,7 @@ export async function getDugnadById(id: string): Promise<DugnadData | null> {
 		const snap = await getDoc(ref);
 
 		if (!snap.exists()) {
-			console.log("❌ Fant ikke dugnaden med id:", id);
+			console.log("Fant ikke dugnaden med id:", id);
 			return null;
 		}
 
@@ -75,7 +75,7 @@ export async function getDugnadById(id: string): Promise<DugnadData | null> {
 			favoritedBy: data.favoritedBy ?? [],
 		};
 	} catch (error) {
-		console.error("❌ Feil ved henting av dugnad:", error);
+		console.error("Feil ved henting av dugnad:", error);
 		throw error;
 	}
 }
@@ -137,7 +137,7 @@ export async function createDugnad(input: NewDugnadInput): Promise<string> {
 
 		return docRef.id;
 	} catch (error) {
-		console.error("❌ Feil ved opprettelse av dugnad:", error);
+		console.error("Feil ved opprettelse av dugnad:", error);
 		throw error;
 	}
 }

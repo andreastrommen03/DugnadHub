@@ -94,7 +94,7 @@ export default function DugnaderHomeScreen() {
 			contentContainerStyle={{ paddingBottom: 40 }}
 		>
 			{/* 🟣 HERO / VELKOMST */}
-			<View className="px-6 pt-16 pb-48 items-center">
+			<View className="px-6 pt-16 pb-28 items-center">
 				<View
 					style={{
 						maxWidth: 800,
@@ -110,7 +110,7 @@ export default function DugnaderHomeScreen() {
 						og delta på dugnader i nærmiljøet ditt.
 						{"\n\n"}
 						Få oversikt over lokale initiativer, bli kjent med nye mennesker og
-						bidra til et bedre nærmiljø – alt samlet på ett sted.
+						bidra til et bedre nærmiljø. Alt samlet på ett sted.
 					</Text>
 				</View>
 			</View>
@@ -121,7 +121,7 @@ export default function DugnaderHomeScreen() {
 					Kommende dugnader
 				</Text>
 				<Text className="text-[#14532D] text-sm mb-8 text-center">
-					Bla gjennom dugnader som skjer i nærheten av deg.
+					Bla gjennom kommende dugnader.
 				</Text>
 			</View>
 

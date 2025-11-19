@@ -39,7 +39,7 @@ export default function CreateDugnadScreen() {
 			);
 			return;
 		}
-
+		//fiks dette
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ImagePicker.MediaTypeOptions.Images,
 			allowsEditing: true,

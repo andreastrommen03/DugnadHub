@@ -14,6 +14,8 @@ import { DugnadData } from "../../../utils/firebaseTypes";
 import { getDugnadById, updateDugnad } from "../../../api/dugnadApi";
 import { useAuthSession } from "../../../providers/authctx";
 
+// Denne koden er basert på kode fra Lecture12-query-profilePage-likes i TDS200
+
 export default function DugnadDetailsScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 

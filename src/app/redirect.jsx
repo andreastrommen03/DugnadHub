@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import { View, Text } from "react-native";
 
+// Denne koden er basert på kode fra Lecture12-query-profilePage-likes i TDS200
+
 export default function RedirectHandler() {
 	useEffect(() => {
 		// Plukk ut id_token fra hash i URL

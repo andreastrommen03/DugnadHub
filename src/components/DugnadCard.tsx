@@ -3,6 +3,8 @@ import { View, Text, Image, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DugnadData } from "../utils/firebaseTypes";
 
+// Denne koden er basert på kode fra Lecture12-query-profilePage-likes i TDS200
+
 type Props = {
 	dugnad: DugnadData;
 	onPress: () => void;

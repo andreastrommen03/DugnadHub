@@ -1,6 +1,8 @@
 import { getStorageRef } from "firebaseConfig.js";
 import { uploadBytes, getDownloadURL } from "firebase/storage";
 
+// Denne koden er hentet fra kode i Lecture12-query-profilePage-likes i TDS200
+
 export const uploadImageToFirebase = async (uri: string) => {
 	const fetchResponse = await fetch(uri);
 	const blob = await fetchResponse.blob();

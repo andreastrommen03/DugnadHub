@@ -11,6 +11,8 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
 
+// Denne koden er hentet fra kode i Lecture12-query-profilePage-likes i TDS200
+
 type SelectImageModalProps = {
 	closeModal: () => void;
 	setImages: (images: string[]) => void;

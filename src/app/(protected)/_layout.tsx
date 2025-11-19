@@ -1,4 +1,3 @@
-// src/app/(protected)/_layout.tsx
 import React from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { Stack, Redirect } from "expo-router";
@@ -7,7 +6,6 @@ import { useAuthSession } from "../../providers/authctx";
 export default function ProtectedLayout() {
 	const { user, isLoading } = useAuthSession();
 
-	// Viser en enkel loader mens vi sjekker auth-status
 	if (isLoading) {
 		return (
 			<View className="flex-1 items-center justify-center bg-[#ECFDF3]">

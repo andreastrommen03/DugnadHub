@@ -1,5 +1,3 @@
-// src/app/(protected)/(tabs)/index.tsx
-
 import React, { useState, useCallback, useMemo } from "react";
 import {
 	View,

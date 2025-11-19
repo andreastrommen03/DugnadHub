@@ -1,4 +1,3 @@
-// src/api/dugnadApi.ts
 import {
 	collection,
 	doc,
@@ -10,6 +9,8 @@ import {
 import { db } from "../../firebaseConfig";
 import { uploadImageToFirebase } from "./imageApi";
 import { DugnadData } from "../utils/firebaseTypes";
+
+// Denne koden er basert på kode fra Lecture12-query-profilePage-likes i TDS200
 
 // Hent alle dugnader
 export async function getDugnads(): Promise<DugnadData[]> {
@@ -80,7 +81,7 @@ export async function getDugnadById(id: string): Promise<DugnadData | null> {
 	}
 }
 
-// --- Oppdater dugnad (påmelding osv.) ---
+// Oppdater dugnad
 export async function updateDugnad(
 	id: string,
 	data: Partial<DugnadData>
@@ -94,7 +95,6 @@ export async function updateDugnad(
 	}
 }
 
-// --- TYPE for ny dugnad (det CreateDugnadScreen sender inn) ---
 type NewDugnadInput = {
 	title: string;
 	description: string;
@@ -102,10 +102,9 @@ type NewDugnadInput = {
 	date: string;
 	maxVolunteers: number;
 	category: string;
-	images?: string[]; // rå URIs fra ImagePicker
+	images?: string[];
 };
 
-// --- Opprett ny dugnad: laster opp bilder og lagrer URLer ---
 export async function createDugnad(input: NewDugnadInput): Promise<string> {
 	try {
 		const uploadedUrls: string[] = [];
@@ -114,8 +113,6 @@ export async function createDugnad(input: NewDugnadInput): Promise<string> {
 			for (const uri of input.images) {
 				if (!uri) continue;
 				const downloadURL = await uploadImageToFirebase(uri);
-
-				// uploadImageToFirebase returnerer "ERROR" hvis noe gikk galt
 				if (downloadURL && downloadURL !== "ERROR") {
 					uploadedUrls.push(downloadURL);
 				}

@@ -17,6 +17,8 @@ import Toast from "react-native-toast-message";
 import { createDugnad } from "../../api/dugnadApi";
 import SelectImageModal from "../../components/SelectImageModal";
 
+// Denne koden er basert på kode fra Lecture12-query-profilePage-likes i TDS200
+
 export default function CreateDugnadScreen() {
 	const router = useRouter();
 

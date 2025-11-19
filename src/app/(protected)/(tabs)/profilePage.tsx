@@ -1,5 +1,3 @@
-// src/app/(protected)/(tabs)/profilePage.tsx
-
 import React, { useState, useCallback } from "react";
 import { View, Text, ScrollView, Platform, Pressable } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";

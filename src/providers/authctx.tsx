@@ -1,4 +1,3 @@
-// src/providers/authctx.tsx
 import React, {
 	createContext,
 	useContext,
@@ -9,6 +8,8 @@ import React, {
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import * as authApi from "../api/authApi";
+
+// Denne koden er basert på kode fra Lecture12-query-profilePage-likes i TDS200
 
 type AuthContextType = {
 	user: User | null;
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }: Props) => {
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 
-	// 🔹 Lytt til Firebase-auth endringer
+	// Lytter til Firebase-auth endringer
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
 			setUser(firebaseUser ?? null);
@@ -70,7 +71,7 @@ export const AuthProvider = ({ children }: Props) => {
 		}
 	};
 
-	const userNameSession = user?.displayName ?? user?.email ?? null; // 👈 veldig likt Yuan
+	const userNameSession = user?.displayName ?? user?.email ?? null;
 
 	const value: AuthContextType = {
 		user,

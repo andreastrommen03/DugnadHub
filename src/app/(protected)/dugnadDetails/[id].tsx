@@ -1,5 +1,3 @@
-// src/app/(protected)/dugnadDetails/[id].tsx
-
 import React, { useEffect, useState } from "react";
 import {
 	View,
@@ -10,10 +8,11 @@ import {
 	Pressable,
 } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+
 import { DugnadData } from "../../../utils/firebaseTypes";
 import { getDugnadById, updateDugnad } from "../../../api/dugnadApi";
 import { useAuthSession } from "../../../providers/authctx";
-import { Ionicons } from "@expo/vector-icons";
 
 export default function DugnadDetailsScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,9 +22,14 @@ export default function DugnadDetailsScreen() {
 	const [isUpdating, setIsUpdating] = useState(false);
 
 	const { user } = useAuthSession();
-	const userId = user?.email ?? user?.uid ?? "Ukjent"; // brukes til deltakere
-	const favUserId = user?.uid ?? user?.email ?? "Ukjent"; // brukes til favoritt
 
+	// Deltakere/påmeldte
+	const userId = user?.email ?? user?.uid ?? "Ukjent";
+
+	// Favoritter
+	const favUserId = user?.uid ?? user?.email ?? "Ukjent";
+
+	// Hent dugnad basert på ID fra URL
 	useEffect(() => {
 		async function load() {
 			if (!id) return;
@@ -43,7 +47,7 @@ export default function DugnadDetailsScreen() {
 		load();
 	}, [id]);
 
-	// Meld på/av
+	// Påmelding/avmelding
 	const handleToggleJoin = async () => {
 		if (!dugnad || !userId) return;
 
@@ -56,6 +60,7 @@ export default function DugnadDetailsScreen() {
 			? currentParticipants.filter((p) => p !== userId)
 			: [...currentParticipants, userId];
 
+		// Oppdater antall frivillige
 		const newCount = alreadyJoined
 			? Math.max(0, dugnad.currentVolunteers - 1)
 			: dugnad.currentVolunteers + 1;
@@ -66,6 +71,7 @@ export default function DugnadDetailsScreen() {
 			currentVolunteers: newCount,
 		};
 
+		// Oppdater lokalt UI
 		setDugnad(updatedDugnad);
 
 		try {
@@ -80,7 +86,6 @@ export default function DugnadDetailsScreen() {
 		}
 	};
 
-	// Favoritt
 	const handleToggleFavorite = async () => {
 		if (!dugnad || !favUserId) return;
 
@@ -91,7 +96,6 @@ export default function DugnadDetailsScreen() {
 			? currentFavs.filter((u) => u !== favUserId)
 			: [...currentFavs, favUserId];
 
-		// Oppdater UI
 		setDugnad({ ...dugnad, favoritedBy: updatedFavs });
 
 		try {
@@ -103,7 +107,7 @@ export default function DugnadDetailsScreen() {
 
 	if (loading) {
 		return (
-			<View className="flex-1 bg-[#ECFDF3] justify-center items-center">
+			<View className="flex-1 bg-[#E5F4EC] justify-center items-center">
 				<ActivityIndicator />
 				<Text className="text-[#064E3B] mt-2">Laster dugnad...</Text>
 			</View>
@@ -112,11 +116,11 @@ export default function DugnadDetailsScreen() {
 
 	if (!dugnad) {
 		return (
-			<View className="flex-1 bg-[#ECFDF3] items-center justify-center px-4">
+			<View className="flex-1 bg-[#E5F4EC] items-center justify-center px-4">
 				<Text className="text-[#064E3B] text-lg font-semibold mb-2">
 					Fant ikke dugnaden
 				</Text>
-				<Text className="text-[#166534] text-sm">ID: {id}</Text>
+				<Text className="text-[#064E3B] text-sm">ID: {id}</Text>
 			</View>
 		);
 	}
@@ -129,7 +133,8 @@ export default function DugnadDetailsScreen() {
 	const isFavorite = favList.includes(favUserId);
 
 	return (
-		<View className="flex-1 bg-[#ECFDF3]">
+		<View className="flex-1 bg-[#E5F4EC]">
+			{/* Tilpasset header med grønn bakgrunn */}
 			<Stack.Screen
 				options={{
 					title: dugnad?.title ?? "Dugnad",
@@ -140,7 +145,7 @@ export default function DugnadDetailsScreen() {
 			/>
 
 			<ScrollView contentContainerClassName="px-4 pt-6 pb-10">
-				// Oppdater UI
+				{/* Bildekarusell eller enkeltbilde */}
 				{dugnad.imageUrls && dugnad.imageUrls.length > 0 ? (
 					<ScrollView
 						horizontal
@@ -164,9 +169,11 @@ export default function DugnadDetailsScreen() {
 						resizeMode="cover"
 					/>
 				) : null}
-				<View className="bg-[#f4fbf7] rounded-2xl p-5 mb-6 border border-[#166534]">
-					{/* Tittel + favoritt knapp */}
-					<View className="flex-row items-center justify-between mb-3">
+
+				{/* Card med detaljifno */}
+				<View className="bg-[#f4fbf7] rounded-2xl p-5 mb-6">
+					{/* Tittel + favoritt-hjerte */}
+					<View className="flex-row items-center justify-between mb-2">
 						<Text className="text-2xl font-bold text-[#064E3B] flex-1 pr-4">
 							{dugnad.title}
 						</Text>
@@ -181,76 +188,80 @@ export default function DugnadDetailsScreen() {
 							/>
 						</Pressable>
 					</View>
+
 					{/* Kategori */}
 					<View className="self-start bg-[#D9F2E3] px-3 py-1 rounded-full mb-3">
 						<Text className="text-xs font-semibold text-[#064E3B] uppercase">
 							{dugnad.category ?? "Ukjent kategori"}
 						</Text>
 					</View>
-					<Text className="text-base text-[#166534] mb-4">
+
+					{/* Beskrivelse */}
+					<Text className="text-base text-[#064E3B] mb-4">
 						{dugnad.description}
 					</Text>
-					<View className="h-[1px] bg-[#166534] mb-3" />
-					<Text className="text-sm text-[#166534] mb-3">
+
+					<View className="h-[1px] bg-gray-200 mb-3" />
+
+					{/* Sted */}
+					<Text className="text-sm text-[#064E3B] mb-1">
 						Sted:{" "}
 						<Text className="font-semibold text-[#064E3B]">
 							{dugnad.location}
 						</Text>
 					</Text>
-					<Text className="text-sm text-[#166534] mb-3">
+
+					{/* Tidspunkt */}
+					<Text className="text-sm text-[#064E3B] mb-3">
 						Tidspunkt:{" "}
 						<Text className="font-semibold text-[#064E3B]">{dugnad.date}</Text>
 					</Text>
-					<Text className="text-sm text-[#166534] mb-3">
-						Nødvendige frivillige:{" "}
-						<Text className="font-semibold text-[#064E3B]">
-							{dugnad.maxVolunteers}
-						</Text>
-					</Text>
-					<Text className="text-sm text-[#166534]">
+
+					{/* Påmeldte */}
+					<Text className="text-sm text-[#064E3B]">
 						Påmeldte:{" "}
 						<Text className="font-semibold">
 							{dugnad.currentVolunteers}/{dugnad.maxVolunteers}
 						</Text>
 					</Text>
 				</View>
-				{/* Deltakerliste, fikk ikke gjort ferdig pga mangel av tid. Nå viser den bare mailen til den som er innlogget hvis den */}
-				<View className="bg-[#F0FDF4] rounded-2xl p-4 mb-8 border border-[#166534]">
+
+				{/* Deltakerliste */}
+				<View className="bg-[#f4fbf7]  rounded-2xl p-4 mb-8">
 					<Text className="text-[#064E3B] text-lg font-semibold mb-2">
 						Deltakere
 					</Text>
 
 					{participants.length === 0 ? (
-						<Text className="text-[#166534] text-sm">
+						<Text className="text-[#064E3B] text-sm">
 							Ingen er påmeldt enda. Vær den første som melder deg på!
 						</Text>
 					) : (
 						<View className="space-y-1">
 							{participants.map((p, index) => (
-								<Text key={`${p}-${index}`} className="text-[#166534] text-sm">
+								<Text key={`${p}-${index}`} className="text-[#064E3B] text-sm">
 									• {p}
 								</Text>
 							))}
 						</View>
 					)}
 				</View>
-				{/* Påmeldingsknapp – samme funksjon, grønn stil */}
+
+				{/* Påmeldingsknapp */}
 				<View className="mb-10">
 					{isFull && !alreadyJoined ? (
-						<View className="py-3 rounded-xl items-center bg-[#9CA3AF]">
+						<View className="bg-gray-600 py-3 rounded-xl items-center">
 							<Text className="text-white font-semibold">Dugnaden er full</Text>
 						</View>
 					) : (
 						<Pressable
 							onPress={handleToggleJoin}
 							disabled={isUpdating}
-							className="py-3 rounded-xl items-center"
-							style={{
-								backgroundColor: alreadyJoined ? "#B91C1C" : "#064E3B",
-								opacity: isUpdating ? 0.8 : 1,
-							}}
+							className={`py-3 rounded-xl items-center ${
+								alreadyJoined ? "bg-[#DC6E6E]" : "bg-[#064E3B]"
+							}`}
 						>
-							<Text className="text-white font-semibold text-lg">
+							<Text className="text-[#f4fbf7]  font-semibold text-lg">
 								{alreadyJoined ? "Meld meg av" : "Meld meg på dugnaden"}
 							</Text>
 						</Pressable>

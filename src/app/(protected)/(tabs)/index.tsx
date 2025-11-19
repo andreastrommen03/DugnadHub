@@ -20,12 +20,14 @@ export default function DugnaderHomeScreen() {
 	const router = useRouter();
 	const { user } = useAuthSession();
 
+	// Knytte favoritter til innlogget bruker
 	const favUserId = user?.uid ?? user?.email ?? "Ukjent";
 
 	const [dugnader, setDugnader] = useState<DugnadData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState("");
 
+	// Henter alle dugnader fra Firestore
 	const loadDugnader = useCallback(async () => {
 		try {
 			setLoading(true);
@@ -38,13 +40,14 @@ export default function DugnaderHomeScreen() {
 		}
 	}, []);
 
+	// Hent dugnader hver gang fanen får fokus
 	useFocusEffect(
 		useCallback(() => {
 			loadDugnader();
 		}, [loadDugnader])
 	);
 
-	// 🔍 Live-filter på tittel + kategori
+	// Live-filter på tittel + kategori basert på søkefeltet
 	const filteredDugnader = useMemo(() => {
 		const q = search.trim().toLowerCase();
 		if (!q) return dugnader;
@@ -56,7 +59,7 @@ export default function DugnaderHomeScreen() {
 		});
 	}, [search, dugnader]);
 
-	// ❤️ Favoritter
+	// Favoritt på en dugnad for innlogget bruker
 	const handleToggleFavorite = async (dugnad: DugnadData) => {
 		if (!favUserId) return;
 
@@ -66,6 +69,7 @@ export default function DugnaderHomeScreen() {
 			? current.filter((x) => x !== favUserId)
 			: [...current, favUserId];
 
+		// Oppdater lokalt UI
 		setDugnader((prev) =>
 			prev.map((d) => (d.id === dugnad.id ? { ...d, favoritedBy: updated } : d))
 		);
@@ -73,7 +77,7 @@ export default function DugnaderHomeScreen() {
 		try {
 			await updateDugnad(dugnad.id, { favoritedBy: updated });
 		} catch (error) {
-			console.error("❌ Feil ved oppdatering av favoritt:", error);
+			console.error("Feil ved oppdatering av favoritt:", error);
 		}
 	};
 
@@ -85,27 +89,27 @@ export default function DugnaderHomeScreen() {
 		);
 	}
 
-	// 📏 kortbredde: 3 per rad på web, 2 per rad på mobil
+	// Cards: 3 per rad på web, 2 per rad på mobil
 	const cardWidth = Platform.OS === "web" ? "30%" : "46%";
 
 	return (
 		<ScrollView
-			className="flex-1 bg-[#E5F4EC]"
+			className="flex-1 bg-[#ECFDF3]"
 			contentContainerStyle={{ paddingBottom: 40 }}
 		>
-			{/* 🟣 HERO / VELKOMST */}
-			<View className="px-6 pt-16 pb-28 items-center">
+			{/* Velkomstseksjon */}
+			<View className="px-6 pt-16 pb-48 items-center">
 				<View
 					style={{
 						maxWidth: 800,
 					}}
-					className="bg-[#D9F2E3] rounded-3xl border border-[#166534] px-6 py-10"
+					className="bg-[#F0FDF4] rounded-3xl border border-[#064E3B] px-6 py-10"
 				>
 					<Text className="text-[#064E3B] text-4xl font-bold mb-4 text-center">
 						DugnadHub
 					</Text>
 
-					<Text className="text-[#14532D] text-base leading-6 text-center">
+					<Text className="text-[#166534] text-base leading-6 text-center">
 						Velkommen til DugnadHub — stedet hvor du enkelt kan finne, opprette
 						og delta på dugnader i nærmiljøet ditt.
 						{"\n\n"}
@@ -115,17 +119,17 @@ export default function DugnaderHomeScreen() {
 				</View>
 			</View>
 
-			{/* 🟠 SEKSJON: KOMMENDE DUGNADER */}
+			{/* Kommende dugnader */}
 			<View className="px-8 mb-2">
-				<Text className="text-[#064E3B] text-3xl font-semibold mb-4 text-center">
+				<Text className="text-[#064E3B] text-3xl font-semibold mb-1">
 					Kommende dugnader
 				</Text>
-				<Text className="text-[#14532D] text-sm mb-8 text-center">
-					Bla gjennom kommende dugnader.
+				<Text className="text-[#166534] text-sm mb-4">
+					Bla gjennom dugnader som skjer i nærheten av deg.
 				</Text>
 			</View>
 
-			{/* 🟪 Søk + Opprett dugnad – smalt og midtstilt */}
+			{/* Søkefelt + opprett dugnad-knapp */}
 			<View
 				style={{
 					width: "100%",
@@ -133,17 +137,14 @@ export default function DugnaderHomeScreen() {
 					alignSelf: "center",
 				}}
 			>
-				{/* Søk */}
 				<TextInput
 					value={search}
 					onChangeText={setSearch}
 					placeholder="Søk på tittel eller kategori..."
 					placeholderTextColor="#6B7280"
-					className="bg-[#f4fbf7] text-[#064E3B] px-4 py-2 rounded-xl border border-[#064E3B] mb-4"
+					className="bg-[#f4fbf7]  text-[#064E3B] px-4 py-2 rounded-xl border border-[#064E3B] mb-4"
 					style={{ width: "100%" }}
 				/>
-
-				{/* Opprett dugnad */}
 				<Pressable
 					onPress={() => router.push("/(protected)/createDugnad")}
 					className="py-2 rounded-xl items-center"
@@ -153,13 +154,9 @@ export default function DugnaderHomeScreen() {
 						backgroundColor: "#064E3B",
 					}}
 				>
-					<Text className="text-[#f4fbf7] font-semibold">
-						Opprett ny dugnad
-					</Text>
+					<Text className="text-white font-semibold">Opprett ny dugnad</Text>
 				</Pressable>
 			</View>
-
-			{/* 🟢 GRID */}
 			<View style={{ alignItems: "center" }}>
 				<View style={{ width: "100%", maxWidth: 1000 }}>
 					<View className="flex-row flex-wrap justify-between px-4">

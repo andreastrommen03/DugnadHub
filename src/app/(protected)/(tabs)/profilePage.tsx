@@ -176,7 +176,7 @@ export default function ProfilePage() {
 						</View>
 					</View>
 				)}
-				// Logg ut-knapp
+				{/* Logg ut knapp*/}
 				<View className="mt-8 mb-6 items-center">
 					<Pressable
 						onPress={async () => {

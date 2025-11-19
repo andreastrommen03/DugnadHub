@@ -134,13 +134,9 @@ export default function DugnadDetailsScreen() {
 
 	return (
 		<View className="flex-1 bg-[#E5F4EC]">
-			{/* Tilpasset header med grønn bakgrunn */}
 			<Stack.Screen
 				options={{
 					title: dugnad?.title ?? "Dugnad",
-					headerStyle: { backgroundColor: "#064E3B" },
-					headerTintColor: "#D9F2E3",
-					headerTitleStyle: { color: "#D9F2E3" },
 				}}
 			/>
 

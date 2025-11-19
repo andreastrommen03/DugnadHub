@@ -98,7 +98,7 @@ export default function DugnaderHomeScreen() {
 			contentContainerStyle={{ paddingBottom: 40 }}
 		>
 			{/* Velkomstseksjon */}
-			<View className="px-6 pt-16 pb-48 items-center">
+			<View className="px-6 pt-16 pb-28 items-center">
 				<View
 					style={{
 						maxWidth: 800,
@@ -120,7 +120,7 @@ export default function DugnaderHomeScreen() {
 			</View>
 
 			{/* Kommende dugnader */}
-			<View className="px-8 mb-2">
+			<View className="px-8 mb-2 items-center">
 				<Text className="text-[#064E3B] text-3xl font-semibold mb-1">
 					Kommende dugnader
 				</Text>

@@ -1,10 +1,9 @@
-// src/app/redirect.tsx
 import React, { useEffect } from "react";
 import { View, Text } from "react-native";
 
 export default function RedirectHandler() {
 	useEffect(() => {
-		// Plukk ut id_token fra hash-delen i URL-en
+		// Plukk ut id_token fra hash i URL
 		const hash = window.location.hash.startsWith("#")
 			? window.location.hash.substring(1)
 			: window.location.hash;
@@ -19,13 +18,11 @@ export default function RedirectHandler() {
 					type: "GOOGLE_AUTH_SUCCESS",
 					idToken,
 				},
-				"*" // for localhost er dette greit
+				"*"
 			);
-
-			// Lukk popup-vinduet
 			window.close();
 		} else {
-			// Fallback: bare gå til root om noe er rart
+			// Fallback
 			window.location.href = "/";
 		}
 	}, []);

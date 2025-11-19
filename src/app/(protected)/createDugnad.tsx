@@ -1,4 +1,3 @@
-// src/app/(protected)/createDugnad.tsx
 import React, { useState } from "react";
 import {
 	View,
@@ -10,12 +9,13 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 	Image,
+	Modal,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
 
 import { createDugnad } from "../../api/dugnadApi";
+import SelectImageModal from "../../components/SelectImageModal";
 
 export default function CreateDugnadScreen() {
 	const router = useRouter();
@@ -29,50 +29,7 @@ export default function CreateDugnadScreen() {
 
 	const [localImages, setLocalImages] = useState<string[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-
-	const pickFromLibrary = async () => {
-		const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-		if (!perm.granted) {
-			Toast.show({
-				type: "error",
-				text1: "Tillatelse nødvendig",
-				text2: "Du må gi tilgang til bilder for å velge fra galleri.",
-			});
-			return;
-		}
-
-		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			allowsEditing: true,
-			allowsMultipleSelection: true,
-			aspect: [4, 3],
-			quality: 0.8,
-		});
-
-		if (!result.canceled && result.assets.length > 0) {
-			setLocalImages((prev) => [...prev, ...result.assets.map((a) => a.uri)]);
-		}
-	};
-
-	const pickFromCamera = async () => {
-		const perm = await ImagePicker.requestCameraPermissionsAsync();
-		if (!perm.granted) {
-			Toast.show({
-				type: "error",
-				text1: "Tillatelse nødvendig",
-				text2: "Du må gi tilgang til kamera for å ta bilde.",
-			});
-			return;
-		}
-
-		const result = await ImagePicker.launchCameraAsync({
-			quality: 0.8,
-		});
-
-		if (!result.canceled && result.assets.length > 0) {
-			setLocalImages((prev) => [...prev, result.assets[0].uri]);
-		}
-	};
+	const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
 	const handleCreate = async () => {
 		if (!title.trim() || !description.trim() || !location.trim()) {
@@ -130,6 +87,15 @@ export default function CreateDugnadScreen() {
 					headerTitleStyle: { color: "#D9F2E3" },
 				}}
 			/>
+
+			{/* SelectImageModal for kamera / galleri */}
+			<Modal visible={isImageModalOpen} animationType="slide">
+				<SelectImageModal
+					closeModal={() => setIsImageModalOpen(false)}
+					setImages={setLocalImages}
+					currentImages={localImages}
+				/>
+			</Modal>
 
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -246,7 +212,7 @@ export default function CreateDugnadScreen() {
 
 						<View className="flex-row gap-3">
 							<Pressable
-								onPress={pickFromLibrary}
+								onPress={() => setIsImageModalOpen(true)}
 								className="flex-1 py-2 rounded-xl items-center"
 								style={{ backgroundColor: "#064E3B" }}
 							>
@@ -256,7 +222,7 @@ export default function CreateDugnadScreen() {
 							</Pressable>
 
 							<Pressable
-								onPress={pickFromCamera}
+								onPress={() => setIsImageModalOpen(true)}
 								className="flex-1 py-2 rounded-xl items-center"
 								style={{ backgroundColor: "#064E3B" }}
 							>

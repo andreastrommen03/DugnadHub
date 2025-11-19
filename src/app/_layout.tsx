@@ -1,4 +1,3 @@
-// src/app/_layout.tsx
 import React from "react";
 import { Slot } from "expo-router";
 import "../global.css";
@@ -11,8 +10,6 @@ export default function RootLayout() {
 		<AuthProvider>
 			<>
 				<Slot />
-
-				{/* 👇 Toast MÅ ligge nederst i layouten */}
 				<Toast />
 			</>
 		</AuthProvider>

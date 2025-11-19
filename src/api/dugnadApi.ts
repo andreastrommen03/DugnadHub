@@ -11,7 +11,7 @@ import { db } from "../../firebaseConfig";
 import { uploadImageToFirebase } from "./imageApi";
 import { DugnadData } from "../utils/firebaseTypes";
 
-// --- Hent alle dugnader ---
+// Hent alle dugnader
 export async function getDugnads(): Promise<DugnadData[]> {
 	try {
 		const snapshot = await getDocs(collection(db, "dugnader"));
@@ -45,7 +45,7 @@ export async function getDugnads(): Promise<DugnadData[]> {
 	}
 }
 
-// --- Hent én dugnad ---
+// Hent én dugnad
 export async function getDugnadById(id: string): Promise<DugnadData | null> {
 	try {
 		const ref = doc(db, "dugnader", id);

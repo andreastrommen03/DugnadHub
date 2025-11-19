@@ -1,5 +1,3 @@
-// src/api/authApi.ts
-
 import { auth } from "../../firebaseConfig";
 import {
 	createUserWithEmailAndPassword,
@@ -7,10 +5,7 @@ import {
 	updateProfile,
 } from "firebase/auth";
 
-/**
- * signIn(email, password)
- *  - logger inn bruker med e-post og passord
- */
+// Logg inn, e-post og passord
 export const signIn = async (email: string, password: string) => {
 	try {
 		const userCredential = await signInWithEmailAndPassword(
@@ -26,10 +21,7 @@ export const signIn = async (email: string, password: string) => {
 	}
 };
 
-/**
- * signOut()
- *  - logger ut nåværende bruker
- */
+// Logg ut
 export const signOut = async () => {
 	try {
 		await auth.signOut();
@@ -40,10 +32,7 @@ export const signOut = async () => {
 	}
 };
 
-/**
- * signUp(email, password, username)
- *  - oppretter ny bruker og setter displayName
- */
+// Registrer deg, brukernavn, e-post og passord
 export const signUp = async (
 	email: string,
 	password: string,

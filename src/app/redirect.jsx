@@ -5,7 +5,6 @@ import { View, Text } from "react-native";
 
 export default function RedirectHandler() {
 	useEffect(() => {
-		// Plukk ut id_token fra hash i URL
 		const hash = window.location.hash.startsWith("#")
 			? window.location.hash.substring(1)
 			: window.location.hash;
@@ -14,7 +13,6 @@ export default function RedirectHandler() {
 		const idToken = params.get("id_token");
 
 		if (idToken && window.opener) {
-			// Send token tilbake til hovedvinduet
 			window.opener.postMessage(
 				{
 					type: "GOOGLE_AUTH_SUCCESS",

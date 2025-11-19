@@ -16,6 +16,8 @@ import * as AuthSession from "expo-auth-session";
 import Toast from "react-native-toast-message";
 import { signInWithGoogleCredential } from "../api/googleSignIn";
 
+// Denne koden er basert på kode fra Lecture12-query-profilePage-likes i TDS200
+
 // Må alltid kjøres på web for at popup/redirect skal fungere riktig
 WebBrowser.maybeCompleteAuthSession();
 
@@ -25,19 +27,14 @@ export default function AuthenticationScreen() {
 
 	// Logg inn eller registermodus
 	const [mode, setMode] = useState<"login" | "register">("register");
-
-	// Inputfelter
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [username, setUsername] = useState("");
-
-	// Web-klient-ID
 	const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 	if (!webClientId) {
 		console.warn("Mangler EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID i .env");
 	}
 
-	// Redirect-URL
 	const redirectUri =
 		Platform.OS === "web"
 			? "http://127.0.0.1:8081/redirect"
@@ -107,12 +104,10 @@ export default function AuthenticationScreen() {
 		}
 	};
 
-	// Håndterer Google-innlogging
+	// Google-innlogging
 	useEffect(() => {
-		// Web, mottar idToken fra popup
 		if (Platform.OS === "web") {
 			const handleMessage = async (event: MessageEvent) => {
-				// Sjekker format
 				if (!event.data || typeof event.data !== "object") return;
 
 				const { type, idToken, error } = event.data as {

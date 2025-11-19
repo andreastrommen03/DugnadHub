@@ -90,7 +90,7 @@ export default function CreateDugnadScreen() {
 				}}
 			/>
 
-			{/* SelectImageModal for kamera / galleri */}
+			{/* SelectImageModal */}
 			<Modal visible={isImageModalOpen} animationType="slide">
 				<SelectImageModal
 					closeModal={() => setIsImageModalOpen(false)}
@@ -176,7 +176,10 @@ export default function CreateDugnadScreen() {
 
 					{/* Maks frivillige */}
 					<View className="mb-6">
-						<Text className="text-[#064E3B] mb-1">Maks antall frivillige</Text>
+						<Text className="text-[#064E3B] mb-1">
+							{" "}
+							Antall nødvendige frivillige
+						</Text>
 						<TextInput
 							value={maxVolunteers}
 							onChangeText={setMaxVolunteers}

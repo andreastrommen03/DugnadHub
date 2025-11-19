@@ -1,5 +1,3 @@
-// src/utils/firebaseTypes.ts
-
 export type DugnadData = {
 	id: string;
 	title: string;
@@ -8,8 +6,9 @@ export type DugnadData = {
 	date: string;
 	maxVolunteers: number;
 	currentVolunteers: number;
-	imageUrl?: string; // hvis du har det
+	imageUrl?: string;
 	imageUrls?: string[];
-	category: string; //
+	category: string;
 	participants?: string[];
+	favoritedBy?: string[];
 };

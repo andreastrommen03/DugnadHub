@@ -5,6 +5,8 @@ import {
 	updateProfile,
 } from "firebase/auth";
 
+// Denne koden er basert på kode fra Lecture12-query-profilePage-likes i TDS200
+
 // Logg inn, e-post og passord
 export const signIn = async (email: string, password: string) => {
 	try {

@@ -98,7 +98,6 @@ export default function ProfilePage() {
 					{favoriteDugnads.length === 1 ? "" : "er"}.
 				</Text>
 				<View className="h-[1px] bg-[#064E3B] mb-6" />
-				// Mine påmeldte dugnader
 				<Text className="text-[#064E3B] text-2xl font-semibold mb-3">
 					Mine påmeldte dugnader
 				</Text>
@@ -139,7 +138,6 @@ export default function ProfilePage() {
 					</View>
 				)}
 				<View className="h-[1px] bg-[#064E3B] my-6" />
-				// Mine favoritt dugnader
 				<Text className="text-[#064E3B] text-2xl font-semibold mb-3">
 					Mine favoritt-dugnader
 				</Text>
